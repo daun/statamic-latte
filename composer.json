@@ -1,0 +1,44 @@
+{
+    "name": "daun/statamic-latte",
+    "description": "Use Latte templates on Statamic sites",
+    "keywords": [ "statamic", "latte", "nette", "view" ],
+    "type": "statamic-addon",
+    "autoload": {
+        "psr-4": {
+            "Daun\\StatamicLatte\\": "src"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Philipp Daun",
+            "email": "post@philippdaun.net",
+            "homepage": "https://philippdaun.net"
+        }
+    ],
+    "support": {
+        "email": "post@philippdaun.net"
+    },
+    "extra": {
+        "statamic": {
+            "name": "Statamic Latte",
+            "description": "Add support for the Latte templating engine"
+        },
+        "laravel": {
+            "providers": [
+                "Daun\\StatamicLatte\\ServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^9.0 || ^10.0",
+        "statamic/cms": "^4.0",
+        "daun/laravel-latte": "^1.1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
