@@ -28,6 +28,21 @@ test('only caches get requests', function () {
         ->assertSee('B B');
 });
 
+test('defines cache key from contents', function () {
+    Carbon::setTestNow(Carbon::createFromDate(2024));
+    $this->latte('{cache}A {now()->year}{/cache}')->assertSee('A 2024');
+    $this->latte('{cache}A {now()->year}{/cache}', ['random' => 'param'])->assertSee('A 2024');
+
+    Carbon::setTestNow(Carbon::createFromDate(2025));
+    $this->latte('{cache}A {now()->year}{/cache}')->assertSee('A 2024');
+    $this->latte('{cache}A {now()->year}{/cache}', ['other' => 'param'])->assertSee('A 2024');
+});
+
+test('allows defining custom cache key', function () {
+    $this->latte('{cache key: lorem}ipsum{/cache}')->assertSee('ipsum');
+    $this->latte('{cache key: lorem}dolor{/cache}')->assertSee('ipsum');
+});
+
 test('allow conditional caching using if param', function () {
     $this->latte('{$var} {cache}{$var}{/cache}', ['var' => 'A'])
         ->assertSee('A A');
