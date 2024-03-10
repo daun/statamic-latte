@@ -15,7 +15,6 @@ use WeakMap;
 trait ExtractsToTemporaryView
 {
     public AreaNode $content;
-    protected string $viewFileExtension = 'latte';
     public static ?WeakMap $lexerDelimiters;
     public static ?WeakMap $contentTypes;
 
@@ -62,7 +61,7 @@ trait ExtractsToTemporaryView
     protected function saveContentToView(?string $extension = null): string
     {
         $content = NodeHelpers::toText($this->content);
-        $extension = $extension ?? $this->viewFileExtension;
+        $extension = $extension ?? $this->viewFileExtension ?? 'latte';
 
         $ns = ServiceProvider::$temporaryViewNamespace;
         $hash = sha1($content);
