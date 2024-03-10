@@ -33,7 +33,7 @@ class ModifierExtension extends Extension
     {
         return $this->modifiers
             ->except($this->getDefinedFilters())
-            ->map(fn ($_, $name) => fn (...$args) => $this->applyModifier($name, ...$args))
+            ->map(fn ($_, $name) => fn ($value, ...$args) => $this->applyModifier($name, $value, ...$args))
             ->all();
     }
 
@@ -47,8 +47,8 @@ class ModifierExtension extends Extension
         return array_keys($this->latte->getFilters());
     }
 
-    protected function applyModifier(string $name, ...$args): mixed
+    protected function applyModifier(string $name, $value, ...$args): mixed
     {
-        return ($this->loader->load($name))(...$args);
+        return ($this->loader->load($name))($value, $args);
     }
 }
