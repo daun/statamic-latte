@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Extensions\Nodes\Traits;
 
+use Daun\StatamicLatte\ServiceProvider;
 use Latte\CompileException;
 use Latte\Compiler\NodeHelpers;
 use Latte\Compiler\Nodes\AreaNode;
@@ -63,6 +64,7 @@ trait ExtractsToTemporaryView
         $content = NodeHelpers::toText($this->content);
         $extension = $extension ?? $this->viewFileExtension;
 
+        $ns = ServiceProvider::$temporaryViewNamespace;
         $hash = sha1($content);
         $dir = config('view.compiled');
         $view = "latte-tag-content-{$hash}";
@@ -72,7 +74,7 @@ trait ExtractsToTemporaryView
             file_put_contents($path, $content);
         }
 
-        return "statamic-latte::{$view}";
+        return "{$ns}::{$view}";
     }
 
     public function print(PrintContext $context): string
