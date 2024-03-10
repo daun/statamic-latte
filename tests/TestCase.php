@@ -9,12 +9,10 @@ use Statamic\Extend\Manifest;
 use Statamic\Providers\StatamicServiceProvider;
 use Statamic\Statamic;
 use Tests\Concerns\InteractsWithLatteViews;
-use Tests\Concerns\ModifiesConfig;
 
 abstract class TestCase extends OrchestraTestCase
 {
     use InteractsWithLatteViews;
-    use ModifiesConfig;
 
     protected function getPackageProviders($app)
     {
