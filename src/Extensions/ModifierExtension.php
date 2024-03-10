@@ -37,13 +37,10 @@ class ModifierExtension extends Extension
             ->all();
     }
 
-    protected function getCoreFilters(): array
-    {
-        return array_keys($this->core->getFilters());
-    }
-
     protected function getDefinedFilters(): array
     {
+        // make sure existing filters are not overwritten
+        // to only freeze Latte core filters and overwrite user filters, use $this->core->getFilters()
         return array_keys($this->latte->getFilters());
     }
 
