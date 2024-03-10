@@ -14,7 +14,7 @@ use Latte\Compiler\TemplateParser;
 /**
  * {statamic name [,] [params]}
  */
-class StatamicNode extends StatementNode
+final class StatamicNode extends StatementNode
 {
     public ExpressionNode $name;
 
@@ -24,7 +24,7 @@ class StatamicNode extends StatementNode
 
     public bool $isPair;
 
-    /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
+    /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
         if ($tag->isNAttribute()) {

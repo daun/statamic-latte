@@ -43,11 +43,11 @@ class ServiceProvider extends AddonServiceProvider
 
     protected function getExtensions()
     {
-        return $this->app->config->get('latte.statamic.extensions', static::$defaultExtensions);
+        return $this->app['config']->get('latte.statamic.extensions', static::$defaultExtensions);
     }
 
     protected function registerViewNamespace(): void
     {
-        View::addNamespace('statamic-latte', $this->app->config->get('view.compiled'));
+        View::addNamespace('statamic-latte', $this->app['config']->get('view.compiled'));
     }
 }

@@ -3,6 +3,7 @@
 namespace Daun\StatamicLatte\Extensions\Nodes;
 
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
+use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
@@ -11,13 +12,13 @@ use Latte\Compiler\TemplateParser;
 /**
  * {nocache} {/nocache}
  */
-class NocacheNode extends StatementNode
+final class NocacheNode extends StatementNode
 {
     use Traits\ExtractsToTemporaryView;
 
     public ArrayNode $args;
 
-    /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
+    /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
         $node = $tag->node = new static;

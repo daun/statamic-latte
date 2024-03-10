@@ -12,13 +12,12 @@ use Latte\Compiler\Tag;
  * {cache} ... {/cache}
  * <div n:cache></div>
  */
-class CacheNode extends StatementNode
+final class CacheNode extends StatementNode
 {
     public ArrayNode $args;
-
     public AreaNode $content;
 
-    /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
+    /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag): \Generator
     {
         $node = $tag->node = new static;
