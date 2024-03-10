@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Cache;
+
 test('caches contents of cache tag', function () {
     // config(['statamic.static_caching.strategy' => 'half']);
 
@@ -34,4 +36,11 @@ test('allow conditional caching using if param', function () {
         ->assertSee('B A');
     $this->latte('{$var} {cache if: false}{$var}{/cache}', ['var' => 'C'])
         ->assertSee('C C');
+});
+
+test('supports tagging cache entries', function () {
+    $this->latte('{cache tags:["a"]}{$var}{/cache}', ['var' => 'A'])->assertSee('A');
+    $this->latte('{cache tags:["a"]}{$var}{/cache}', ['var' => 'B'])->assertSee('A');
+    Cache::tags('a')->flush();
+    $this->latte('{cache tags:["a"]}{$var}{/cache}', ['var' => 'B'])->assertSee('B');
 });
