@@ -8,6 +8,11 @@
             "Daun\\StatamicLatte\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+          "Tests\\": "tests/"
+        }
+      },
     "license": "MIT",
     "authors": [
         {
@@ -36,9 +41,26 @@
         "statamic/cms": "^4.0",
         "daun/laravel-latte": "^1.1.0"
     },
+    "require-dev": {
+        "larastan/larastan": "^2.9",
+        "laravel/pint": "^1.14",
+        "orchestra/testbench": "^8.21",
+        "mockery/mockery": "^1.6",
+        "pestphp/pest": "^2.34",
+        "pestphp/pest-plugin-laravel": "^2.3"
+    },
+    "scripts": {
+        "format": "./vendor/bin/pint",
+        "lint": "./vendor/bin/pint --test",
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G",
+        "test": "./vendor/bin/pest",
+        "test:coverage": "./vendor/bin/pest --coverage",
+        "test:ci": "./vendor/bin/pest --coverage-clover coverage.xml"
+    },
     "config": {
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "pixelfear/composer-dist-plugin": true
         }
     }
 }
