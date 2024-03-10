@@ -36,13 +36,13 @@ class CacheNode
     public static function expires(?array $params = []): ?Carbon
     {
         $main = $params[0] ?? null;
-        $for = $params['for'] ?? (is_integer($main) ? $main : null);
+        $for = $params['for'] ?? (is_int($main) ? $main : null);
         $expires = $for ? now()->add("+{$for}") : null;
 
         return $expires;
     }
 
-    public static function key(?array $params = [], ?string $contents): string
+    public static function key(?array $params, ?string $contents): string
     {
         $main = $params[0] ?? null;
         $key = $params['key'] ?? (is_string($main) ? $main : null) ?? $contents;
@@ -57,11 +57,11 @@ class CacheNode
             'params' => $params,
             'auth' => $auth->check(),
             'site' => $site,
-            'scope' => collect($scope)->flip()->map(fn ($_, $s) => match($s) {
+            'scope' => collect($scope)->flip()->map(fn ($_, $s) => match ($s) {
                 'page' => $page,
                 'user' => $user,
                 default => null,
-            })->all()
+            })->all(),
         ];
 
         $hash = md5(json_encode($parts));
