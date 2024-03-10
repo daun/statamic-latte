@@ -53,7 +53,7 @@ class CacheNode
         $user = $auth->user()?->id ?? 'guest';
 
         $parts = [
-            'content' => $key,
+            'key' => $key,
             'params' => $params,
             'auth' => $auth->check(),
             'site' => $site,
