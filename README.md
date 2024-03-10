@@ -1,5 +1,10 @@
 # Statamic Latte
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/daun/statamic-latte.svg)](https://packagist.org/packages/daun/statamic-latte)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/daun/statamic-latte/ci.yml?label=tests)](https://github.com/daun/statamic-latte/actions/workflows/ci.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/daun/statamic-latte)](https://app.codecov.io/gh/daun/statamic-latte)
+[![License](https://img.shields.io/github/license/daun/statamic-latte.svg)](https://github.com/daun/statamic-latte/blob/master/LICENSE)
+
 Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](https://statamic.com/) sites.
 
 ## Features

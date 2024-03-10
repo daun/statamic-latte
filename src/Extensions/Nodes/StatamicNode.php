@@ -14,7 +14,7 @@ use Latte\Compiler\TemplateParser;
 /**
  * {statamic name [,] [params]}
  */
-class StatamicNode extends StatementNode
+final class StatamicNode extends StatementNode
 {
     public ExpressionNode $name;
 
@@ -24,14 +24,14 @@ class StatamicNode extends StatementNode
 
     public bool $isPair;
 
-    /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
+    /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
         if ($tag->isNAttribute()) {
             throw new CompileException('Attribute n:statamic is not supported.', $tag->position);
         }
         $tag->expectArguments();
-        $node = $tag->node = new static;
+        $node = $tag->node = new self;
         // $node->name = $tag->name;
         $node->name = $tag->parser->parseUnquotedStringOrExpression();
         $tag->parser->stream->tryConsume(',');

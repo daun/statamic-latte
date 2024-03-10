@@ -19,6 +19,8 @@ class ServiceProvider extends AddonServiceProvider
         // \Daun\StatamicLatte\Extensions\TagExtension::class,
     ];
 
+    public static $temporaryViewNamespace = 'statamic-latte-temp';
+
     protected ?Engine $latte = null;
 
     public function register(): void
@@ -36,18 +38,15 @@ class ServiceProvider extends AddonServiceProvider
 
     protected function installExtensions(): void
     {
-        foreach ($this->getExtensions() as $extension) {
+        $extensions = $this->app['config']->get('latte.statamic.extensions', static::$defaultExtensions);
+        foreach ($extensions as $extension) {
             Latte::addExtension(new $extension($this->latte));
         }
     }
 
-    protected function getExtensions()
-    {
-        return $this->app->config->get('latte.statamic.extensions', static::$defaultExtensions);
-    }
-
     protected function registerViewNamespace(): void
     {
-        View::addNamespace('statamic-latte', $this->app->config->get('view.compiled'));
+        $namespace = $this->app['config']->get('view.compiled');
+        View::addNamespace(static::$temporaryViewNamespace, $namespace);
     }
 }

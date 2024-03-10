@@ -33,22 +33,19 @@ class ModifierExtension extends Extension
     {
         return $this->modifiers
             ->except($this->getDefinedFilters())
-            ->map(fn ($_, $name) => fn (...$args) => $this->applyModifier($name, ...$args))
+            ->map(fn ($_, $name) => fn ($value, ...$args) => $this->applyModifier($name, $value, ...$args))
             ->all();
-    }
-
-    protected function getCoreFilters(): array
-    {
-        return array_keys($this->core->getFilters());
     }
 
     protected function getDefinedFilters(): array
     {
+        // make sure existing filters are not overwritten
+        // to only freeze Latte core filters and overwrite user filters, use $this->core->getFilters()
         return array_keys($this->latte->getFilters());
     }
 
-    protected function applyModifier(string $name, ...$args): mixed
+    protected function applyModifier(string $name, $value, ...$args): mixed
     {
-        return ($this->loader->load($name))(...$args);
+        return ($this->loader->load($name))($value, $args);
     }
 }

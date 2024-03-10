@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Extensions\Nodes\Traits;
 
+use Daun\StatamicLatte\ServiceProvider;
 use Latte\CompileException;
 use Latte\Compiler\NodeHelpers;
 use Latte\Compiler\Nodes\AreaNode;
@@ -9,14 +10,15 @@ use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\ContentType;
+use WeakMap;
 
 trait ExtractsToTemporaryView
 {
     public AreaNode $content;
 
-    public array $lexerDelimiters = [];
+    public static ?WeakMap $lexerDelimiters;
 
-    public string $contentType = '';
+    public static ?WeakMap $contentTypes;
 
     /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
@@ -37,13 +39,16 @@ trait ExtractsToTemporaryView
 
     protected static function disableParserForTag(Tag $tag, TemplateParser $parser): void
     {
+        static::$lexerDelimiters = static::$lexerDelimiters ?? new WeakMap();
+        static::$contentTypes = static::$contentTypes ?? new WeakMap();
+
         // Temporarily disable {} syntax
         $lexer = $parser->getLexer();
-        $tag->node->lexerDelimiters = [$lexer->openDelimiter, $lexer->closeDelimiter];
+        static::$lexerDelimiters[$tag] = [$lexer->openDelimiter, $lexer->closeDelimiter];
         $lexer->setSyntax('off', $tag->isNAttribute() ? null : $tag->name);
 
         // Switch to text content type
-        $tag->node->contentType = $parser->getContentType();
+        static::$contentTypes[$tag] = $parser->getContentType();
         $parser->setContentType(ContentType::Text);
     }
 
@@ -51,8 +56,8 @@ trait ExtractsToTemporaryView
     {
         // Restore previous syntax and content type
         $lexer = $parser->getLexer();
-        [$lexer->openDelimiter, $lexer->closeDelimiter] = $tag->node->lexerDelimiters;
-        $parser->setContentType($tag->node->contentType);
+        [$lexer->openDelimiter, $lexer->closeDelimiter] = static::$lexerDelimiters[$tag];
+        $parser->setContentType(static::$contentTypes[$tag]);
     }
 
     protected function saveContentToView(?string $extension = null): string
@@ -60,6 +65,7 @@ trait ExtractsToTemporaryView
         $content = NodeHelpers::toText($this->content);
         $extension = $extension ?? $this->viewFileExtension ?? 'latte';
 
+        $ns = ServiceProvider::$temporaryViewNamespace;
         $hash = sha1($content);
         $dir = config('view.compiled');
         $view = "latte-tag-content-{$hash}";
@@ -69,7 +75,7 @@ trait ExtractsToTemporaryView
             file_put_contents($path, $content);
         }
 
-        return "statamic-latte::{$view}";
+        return "{$ns}::{$view}";
     }
 
     public function print(PrintContext $context): string

@@ -16,11 +16,10 @@ class LayoutExtension extends Extension
     {
         return [
             'coreParentFinder' => function (Template $template) {
-                if ($template->getReferenceType()) {
-                    return;
-                } // ignore includes/embeds
-
-                return $this->resolveLayout($template);
+                // ignore includes/embeds
+                if (! $template->getReferenceType()) {
+                    return $this->resolveLayout($template);
+                }
             },
         ];
     }
