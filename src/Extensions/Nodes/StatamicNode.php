@@ -31,7 +31,7 @@ final class StatamicNode extends StatementNode
             throw new CompileException('Attribute n:statamic is not supported.', $tag->position);
         }
         $tag->expectArguments();
-        $node = $tag->node = new static;
+        $node = $tag->node = new self;
         // $node->name = $tag->name;
         $node->name = $tag->parser->parseUnquotedStringOrExpression();
         $tag->parser->stream->tryConsume(',');

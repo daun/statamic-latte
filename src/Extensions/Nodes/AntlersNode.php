@@ -21,15 +21,15 @@ final class AntlersNode extends StatementNode
     /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
-        $node = $tag->node = new static;
+        $node = $tag->node = new self;
         if (! $tag->parser->isEnd()) {
             throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
         }
 
         // Read inner content as raw text
-        static::disableParserForTag($tag, $parser);
+        self::disableParserForTag($tag, $parser);
         [$node->content] = yield;
-        static::restoreParserForTag($tag, $parser);
+        self::restoreParserForTag($tag, $parser);
 
         return $node;
     }

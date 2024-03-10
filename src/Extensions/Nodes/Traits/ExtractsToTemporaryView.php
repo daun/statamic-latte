@@ -15,7 +15,9 @@ use WeakMap;
 trait ExtractsToTemporaryView
 {
     public AreaNode $content;
+
     public static ?WeakMap $lexerDelimiters;
+
     public static ?WeakMap $contentTypes;
 
     /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */

@@ -15,12 +15,13 @@ use Latte\Compiler\Tag;
 final class CacheNode extends StatementNode
 {
     public ArrayNode $args;
+
     public AreaNode $content;
 
     /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag): \Generator
     {
-        $node = $tag->node = new static;
+        $node = $tag->node = new self;
         $node->args = $tag->parser->parseArguments();
         [$node->content] = yield;
 

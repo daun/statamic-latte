@@ -2,8 +2,8 @@
 
 namespace Daun\StatamicLatte\Extensions\Nodes;
 
-use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\AreaNode;
+use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
@@ -21,14 +21,14 @@ final class NocacheNode extends StatementNode
     /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
-        $node = $tag->node = new static;
+        $node = $tag->node = new self;
         $tag->parser->stream->tryConsume(',');
         $node->args = $tag->parser->parseArguments();
 
         // Read inner content as raw text
-        static::disableParserForTag($tag, $parser);
+        self::disableParserForTag($tag, $parser);
         [$node->content] = yield;
-        static::restoreParserForTag($tag, $parser);
+        self::restoreParserForTag($tag, $parser);
 
         return $node;
     }
