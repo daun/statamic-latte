@@ -16,7 +16,7 @@ class ServiceProvider extends AddonServiceProvider
         \Daun\StatamicLatte\Extensions\CacheExtension::class,
         \Daun\StatamicLatte\Extensions\LayoutExtension::class,
         \Daun\StatamicLatte\Extensions\ModifierExtension::class,
-        // \Daun\StatamicLatte\Extensions\TagExtension::class,
+        \Daun\StatamicLatte\Extensions\TagExtension::class,
     ];
 
     public static $temporaryViewNamespace = 'statamic-latte-temp';

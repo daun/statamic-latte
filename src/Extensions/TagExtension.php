@@ -34,7 +34,7 @@ class TagExtension extends Extension
 
     public function getTags(): array
     {
-        // return ['statamic' => [StatamicNode::class, 'create']];
+        return ['statamic' => [StatamicNode::class, 'create']];
 
         return $this->tags
             ->except($this->getCoreTags())
