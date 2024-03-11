@@ -5,7 +5,6 @@ namespace Daun\StatamicLatte\Extensions\Nodes\Concerns;
 use Daun\StatamicLatte\ServiceProvider;
 use Latte\Compiler\NodeHelpers;
 use Latte\Compiler\Nodes\AreaNode;
-use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\ContentType;
