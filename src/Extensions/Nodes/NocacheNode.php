@@ -14,7 +14,7 @@ use Latte\Compiler\TemplateParser;
  */
 final class NocacheNode extends StatementNode
 {
-    use Traits\ExtractsToTemporaryView;
+    use Concerns\ExtractsToTemporaryView;
 
     public ArrayNode $args;
 

@@ -14,7 +14,7 @@ use Latte\Compiler\TemplateParser;
  */
 final class AntlersNode extends StatementNode
 {
-    use Traits\ExtractsToTemporaryView;
+    use Concerns\ExtractsToTemporaryView;
 
     protected string $viewFileExtension = 'antlers.html';
 
