@@ -25,6 +25,9 @@ final class AntlersNode extends StatementNode
         if (! $tag->parser->isEnd()) {
             throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
         }
+        if ($tag->isNAttribute()) {
+            throw new CompileException('Attribute n:antlers is not supported.', $tag->position);
+        }
 
         // Read inner content as raw text
         self::disableParserForTag($tag, $parser);

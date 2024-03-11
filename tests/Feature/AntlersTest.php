@@ -14,3 +14,8 @@ test('throws when passing arguments to antlers tag', function () {
     expect(fn () => $this->latte('{antlers arg: 123}{/antlers}'))
         ->toThrow(\Exception::class, 'Unexpected arguments in {antlers}');
 });
+
+test('throws when using n:antlers attribute', function () {
+    expect(fn () => $this->latte('<div n:antlers></div>'))
+        ->toThrow(\Latte\CompileException::class, 'Attribute n:antlers is not supported');
+});
