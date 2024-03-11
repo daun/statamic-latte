@@ -2,6 +2,8 @@
 
 use Tests\TestCase;
 
+use function Illuminate\Filesystem\join_paths;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -41,7 +43,12 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function fixtures_path(...$paths): string
 {
-    // ..
+    return join_paths(__DIR__, 'fixtures', ...$paths);
+}
+
+function statamic_package_path(...$paths): string
+{
+    return join_paths(__DIR__, '../vendor/statamic/cms', ...$paths);
 }
