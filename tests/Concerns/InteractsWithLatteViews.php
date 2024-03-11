@@ -19,7 +19,7 @@ trait InteractsWithLatteViews
             ViewFacade::addLocation(sys_get_temp_dir());
         }
 
-        $tempFileInfo = pathinfo(tempnam($tempDirectory, 'laravel-latte'));
+        $tempFileInfo = pathinfo(tempnam($tempDirectory, 'statamic-latte-'));
 
         $tempFile = $tempFileInfo['dirname'].'/'.$tempFileInfo['filename'].'.latte';
 
