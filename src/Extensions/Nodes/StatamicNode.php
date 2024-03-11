@@ -19,8 +19,11 @@ use Latte\Compiler\TemplateParser;
 final class StatamicNode extends StatementNode
 {
     public ExpressionNode $tag;
+
     public ArrayNode $args;
+
     public ?AreaNode $content;
+
     public bool $isPair;
 
     /** @return \Generator<int, AreaNode|null> */
@@ -30,7 +33,7 @@ final class StatamicNode extends StatementNode
             throw new CompileException('Attribute n:statamic is not supported.', $tag->position);
         }
 
-        $node = new static;
+        $node = new self;
         if ($tag->name === 'statamic') {
             $tag->expectArguments();
             $node->tag = $tag->parser->parseUnquotedStringOrExpression();

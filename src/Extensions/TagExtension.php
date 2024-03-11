@@ -13,7 +13,9 @@ use Latte\Extension;
 class TagExtension extends Extension
 {
     protected Engine $latte;
+
     protected CoreExtension $core;
+
     protected array $supported = [
         'asset',
         'assets',
