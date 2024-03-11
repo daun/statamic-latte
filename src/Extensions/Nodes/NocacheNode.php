@@ -42,4 +42,9 @@ final class NocacheNode extends StatementNode
             $this->position,
         );
     }
+
+    public function &getIterator(): \Generator
+    {
+        yield $this->content;
+    }
 }

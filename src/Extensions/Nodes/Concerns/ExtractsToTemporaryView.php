@@ -59,18 +59,4 @@ trait ExtractsToTemporaryView
 
         return "{$ns}::{$view}";
     }
-
-    public function print(PrintContext $context): string
-    {
-        return $context->format(
-            'array_merge(%dump, get_defined_vars())->render() %line;',
-            $this->saveContentToView(),
-            $this->position
-        );
-    }
-
-    public function &getIterator(): \Generator
-    {
-        yield $this->content;
-    }
 }
