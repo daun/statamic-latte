@@ -2,8 +2,6 @@
 
 use Tests\TestCase;
 
-use function Illuminate\Filesystem\join_paths;
-
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -51,4 +49,19 @@ function fixtures_path(...$paths): string
 function statamic_package_path(...$paths): string
 {
     return join_paths(__DIR__, '../vendor/statamic/cms', ...$paths);
+}
+
+if (! function_exists('join_paths')) {
+    function join_paths(?string $basePath, ...$paths): string
+    {
+        foreach ($paths as $index => $path) {
+            if (empty($path)) {
+                unset($paths[$index]);
+            } else {
+                $paths[$index] = DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR);
+            }
+        }
+
+        return $basePath.implode('', $paths);
+    }
 }
