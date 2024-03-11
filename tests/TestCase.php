@@ -9,11 +9,13 @@ use Statamic\Extend\Manifest;
 use Statamic\Providers\StatamicServiceProvider;
 use Statamic\Statamic;
 use Tests\Concerns\InteractsWithLatteViews;
+use Tests\Concerns\MocksFrontendRequests;
 use Tests\Concerns\ResolvesStatamicConfig;
 
 abstract class TestCase extends OrchestraTestCase
 {
     use InteractsWithLatteViews;
+    use MocksFrontendRequests;
     use ResolvesStatamicConfig;
 
     protected function getPackageProviders($app)
@@ -46,10 +48,10 @@ abstract class TestCase extends OrchestraTestCase
         $this->resolveStacheStores($app);
 
         // Create two sites for multi-site testing
-        $app['config']->set('statamic.sites.sites', [
-            'default' => ['name' => 'English', 'locale' => 'en_US', 'url' => '/'],
-            'german' => ['name' => 'Deutsch', 'locale' => 'de_DE', 'url' => '/de/'],
-        ]);
+        // $app['config']->set('statamic.sites.sites', [
+        //     'default' => ['name' => 'English', 'locale' => 'en_US', 'url' => '/'],
+        //     'german' => ['name' => 'Deutsch', 'locale' => 'de_DE', 'url' => '/de/'],
+        // ]);
 
         // Set user repository to default flat file system
         $app['config']->set('statamic.users.repository', 'file');
