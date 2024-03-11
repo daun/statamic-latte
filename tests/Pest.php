@@ -41,7 +41,27 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function fixtures_path(...$paths): string
 {
-    // ..
+    return join_paths(__DIR__, 'fixtures', ...$paths);
+}
+
+function statamic_package_path(...$paths): string
+{
+    return join_paths(__DIR__, '../vendor/statamic/cms', ...$paths);
+}
+
+if (! function_exists('join_paths')) {
+    function join_paths(?string $basePath, ...$paths): string
+    {
+        foreach ($paths as $index => $path) {
+            if (empty($path)) {
+                unset($paths[$index]);
+            } else {
+                $paths[$index] = DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR);
+            }
+        }
+
+        return $basePath.implode('', $paths);
+    }
 }

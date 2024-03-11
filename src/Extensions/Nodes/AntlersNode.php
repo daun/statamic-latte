@@ -14,7 +14,7 @@ use Latte\Compiler\TemplateParser;
  */
 final class AntlersNode extends StatementNode
 {
-    use Traits\ExtractsToTemporaryView;
+    use Concerns\ExtractsToTemporaryView;
 
     protected string $viewFileExtension = 'antlers.html';
 
@@ -24,6 +24,9 @@ final class AntlersNode extends StatementNode
         $node = $tag->node = new self;
         if (! $tag->parser->isEnd()) {
             throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
+        }
+        if ($tag->isNAttribute()) {
+            throw new CompileException('Attribute n:antlers is not supported.', $tag->position);
         }
 
         // Read inner content as raw text
@@ -41,5 +44,10 @@ final class AntlersNode extends StatementNode
             $this->saveContentToView(),
             $this->position
         );
+    }
+
+    public function &getIterator(): \Generator
+    {
+        yield $this->content;
     }
 }

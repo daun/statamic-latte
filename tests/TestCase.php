@@ -9,17 +9,21 @@ use Statamic\Extend\Manifest;
 use Statamic\Providers\StatamicServiceProvider;
 use Statamic\Statamic;
 use Tests\Concerns\InteractsWithLatteViews;
+use Tests\Concerns\MocksFrontendRequests;
+use Tests\Concerns\ResolvesStatamicConfig;
 
 abstract class TestCase extends OrchestraTestCase
 {
     use InteractsWithLatteViews;
+    use MocksFrontendRequests;
+    use ResolvesStatamicConfig;
 
     protected function getPackageProviders($app)
     {
         return [
-            StatamicServiceProvider::class,
             AddonServiceProvider::class,
             LatteServiceProvider::class,
+            StatamicServiceProvider::class,
         ];
     }
 
@@ -34,56 +38,37 @@ abstract class TestCase extends OrchestraTestCase
     {
         parent::resolveApplicationConfiguration($app);
 
-        $configs = [
-            'assets',
-            'cp',
-            'forms',
-            'git',
-            'routes',
-            'sites',
-            'stache',
-            'static_caching',
-            'system',
-            'users',
-        ];
+        // Custom view directory
+        $app['config']->set('view.paths', [fixtures_path('views')]);
 
-        foreach ($configs as $config) {
-            $values = require __DIR__."/../vendor/statamic/cms/config/{$config}.php";
-            $app['config']->set("statamic.{$config}", $values);
-        }
+        // Pull in statamic default config
+        $this->resolveStatamicConfiguration($app);
 
-        // Creat two site for multi site testing
-        $app['config']->set('statamic.sites.sites', [
-            'default' => ['name' => 'English', 'locale' => 'en_US', 'url' => '/'],
-            'german' => ['name' => 'Deutsch', 'locale' => 'de_DE', 'url' => '/de/'],
-        ]);
+        // Rewrite content paths to use our test fixtures
+        $this->resolveStacheStores($app);
 
-        // Setting the user repository to the default flat file system
+        // Create two sites for multi-site testing
+        // $app['config']->set('statamic.sites.sites', [
+        //     'default' => ['name' => 'English', 'locale' => 'en_US', 'url' => '/'],
+        //     'german' => ['name' => 'Deutsch', 'locale' => 'de_DE', 'url' => '/de/'],
+        // ]);
+
+        // Set user repository to default flat file system
         $app['config']->set('statamic.users.repository', 'file');
 
-        // Set the content paths for our stache stores
-        $app['config']->set('statamic.stache.stores.taxonomies.directory', __DIR__.'/__fixtures__/content/taxonomies');
-        $app['config']->set('statamic.stache.stores.terms.directory', __DIR__.'/__fixtures__/content/taxonomies');
-        $app['config']->set('statamic.stache.stores.collections.directory', __DIR__.'/__fixtures__/content/collections');
-        $app['config']->set('statamic.stache.stores.entries.directory', __DIR__.'/__fixtures__/content/collections');
-        $app['config']->set('statamic.stache.stores.navigation.directory', __DIR__.'/__fixtures__/content/navigation');
-        $app['config']->set('statamic.stache.stores.collection-trees.directory', __DIR__.'/__fixtures__/content/trees/collections');
-        $app['config']->set('statamic.stache.stores.nav-trees.directory', __DIR__.'/__fixtures__/content/trees/navigation');
-        $app['config']->set('statamic.stache.stores.globals.directory', __DIR__.'/__fixtures__/content/globals');
-        $app['config']->set('statamic.stache.stores.asset-containers.directory', __DIR__.'/__fixtures__/content/assets');
-        $app['config']->set('statamic.stache.stores.users.directory', __DIR__.'/__fixtures__/users');
-
-        // Assume the pro edition for our tests
+        // Assume pro edition for our tests
         // $app['config']->set('statamic.editions.pro', true);
-
-        // Custom view directory
-        $app['config']->set('view.paths', [__DIR__.'/fixtures/views']);
     }
 
     protected function getEnvironmentSetUp($app): void
     {
         parent::getEnvironmentSetUp($app);
 
+        $this->registerStatamicAddon($app);
+    }
+
+    protected function registerStatamicAddon($app)
+    {
         $app->make(Manifest::class)->manifest = [
             'daun/statamic-latte' => [
                 'id' => 'daun/statamic-latte',
