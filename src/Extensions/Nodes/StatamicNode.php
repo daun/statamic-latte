@@ -6,14 +6,15 @@ use Latte\CompileException;
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
+use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
-use Latte\Compiler\Token;
 
 /**
  * {statamic tag [,] [params]}
+ * {tag [,] [params]}
  */
 final class StatamicNode extends StatementNode
 {
@@ -29,22 +30,18 @@ final class StatamicNode extends StatementNode
             throw new CompileException('Attribute n:statamic is not supported.', $tag->position);
         }
 
-        $tag->expectArguments();
-
-        // $tag->outputMode = $tag::OutputRemoveIndentation;
-        $stream = $tag->parser->stream;
         $node = new static;
-        $node->tag = $tag->parser->parseUnquotedStringOrExpression();
+        if ($tag->name === 'statamic') {
+            $tag->expectArguments();
+            $node->tag = $tag->parser->parseUnquotedStringOrExpression();
+        } else {
+            $node->tag = new StringNode($tag->name, $tag->position);
+        }
+
         $tag->parser->stream->tryConsume(',');
         $node->args = $tag->parser->parseArguments();
 
-        if (!$stream->is('|', Token::End)) {
-            ray('!Token::end', $stream);
-        }
-
-        [$node->content, $endTag] = yield;
-
-        ray($endTag);
+        [$node->content] = yield;
 
         return $node;
     }
@@ -53,15 +50,13 @@ final class StatamicNode extends StatementNode
     {
         return $context->format(
             <<<'XX'
-                echo "statamic:%dump" %line;
+                $result = \Statamic\Tags\FluentTag::make(%node) %line
+                    ->context(get_defined_vars())
+                    ->params(%node)
+                    ->fetch();
+                ray(%0.node, $result);
+                echo $result;
                 %node
-                $this->enterBlockLayer(%dump, get_defined_vars()) %line;
-                try {
-                    $this->createTemplate(%node, %node, "embed")->renderToContentType(%dump) %1.line;
-                } finally {
-                    $this->leaveBlockLayer();
-                }
-
                 XX,
             $this->tag,
             $this->position,

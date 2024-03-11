@@ -3,13 +3,9 @@
 namespace Daun\StatamicLatte\Extensions;
 
 use Daun\StatamicLatte\Extensions\Nodes\StatamicNode;
-use Illuminate\Support\Collection;
-use Latte\Compiler\Nodes\TextNode;
-use Latte\Compiler\Tag;
 use Latte\Engine;
 use Latte\Essential\CoreExtension;
 use Latte\Extension;
-use Statamic\Tags\Loader;
 
 /**
  * Latte extension for using Antlers tags in Latte templates.
@@ -17,29 +13,88 @@ use Statamic\Tags\Loader;
 class TagExtension extends Extension
 {
     protected Engine $latte;
-
     protected CoreExtension $core;
-
-    protected Loader $loader;
-
-    protected Collection $tags;
+    protected array $supported = [
+        'asset',
+        'assets',
+        // 'cache',
+        'can',
+        'children',
+        'collection',
+        'cookie',
+        'dd',
+        'ddd',
+        'dump',
+        'get_content',
+        'get_error',
+        'get_errors',
+        'get_files',
+        'glide',
+        // 'in',
+        // 'increment',
+        'installed',
+        // 'is',
+        'iterate',
+        // 'foreach',
+        'link',
+        'locales',
+        'markdown',
+        'member',
+        'mix',
+        'mount_url',
+        'nav',
+        'not_found',
+        // '404',
+        'obfuscate',
+        // 'parent',
+        // 'partial',
+        'path',
+        'query',
+        // 'range',
+        // 'loop',
+        'redirect',
+        'relate',
+        // 'rotate',
+        // 'switch',
+        'route',
+        'scope',
+        'set',
+        // 'section',
+        'session',
+        'structure',
+        'svg',
+        'taxonomy',
+        'theme',
+        // 'trans',
+        // 'trans_choice',
+        'user_groups',
+        'users',
+        'user_roles',
+        'vite',
+        'widont',
+        // 'yields',
+        // 'yield',
+        'form',
+        'user',
+        'protect',
+        'oauth',
+        'search',
+        // 'nocache',
+    ];
 
     public function __construct(Engine $latte)
     {
         $this->latte = $latte;
         $this->core = new CoreExtension();
-        $this->loader = app()->make(Loader::class);
-        $this->tags = app('statamic.tags');
     }
 
     public function getTags(): array
     {
-        return ['statamic' => [StatamicNode::class, 'create']];
-
-        return $this->tags
+        return app('statamic.tags')
+            ->only($this->supported)
             ->except($this->getCoreTags())
-            ->map(fn ($_, $name) => fn (Tag $tag) => new TextNode("{statamic tag : {$name}}", $tag->position))
-            ->keyBy(fn ($_, $name) => "statamic:{$name}")
+            ->map(fn () => [StatamicNode::class, 'create'])
+            ->tap(fn ($tags) => $tags->put('statamic', [StatamicNode::class, 'create']))
             ->all();
     }
 
