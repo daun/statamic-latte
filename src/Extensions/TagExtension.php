@@ -6,6 +6,7 @@ use Daun\StatamicLatte\Extensions\Nodes\StatamicNode;
 use Latte\Engine;
 use Latte\Essential\CoreExtension;
 use Latte\Extension;
+use Statamic\Statamic;
 
 /**
  * Latte extension for using Antlers tags in Latte templates.
@@ -103,5 +104,32 @@ class TagExtension extends Extension
     protected function getCoreTags(): array
     {
         return array_keys($this->core->getTags());
+    }
+
+    /**
+     * Returns a list of functions used in templates.
+     * @return array<string, callable>
+     */
+    public function getFunctions(): array
+    {
+        return [
+            'statamic' => [$this, 'statamic'],
+            's' => [$this, 'statamic'],
+        ];
+    }
+
+    public function statamic(string $name, ...$args): mixed
+    {
+        $params = $args;
+
+        // Allow passing in params as a single array argument
+        foreach ($args as $key => $arg) {
+            if (is_int($key) && is_array($arg) && ! array_is_list($arg)) {
+                $params = array_merge($params, $arg);
+                unset($params[$key]);
+            }
+        }
+
+        return Statamic::tag($name)->params($params)->fetch();
     }
 }
