@@ -54,18 +54,29 @@ as long as you're making sure there's only ever one identically named view.
 </ul>
 ```
 
-## Layout
+## Tags
 
-Just like in Antlers templates, the correct layout file will be used based on the data available in
-your entries and blueprints.
+[Statamic Tags](https://statamic.dev/tags) can be used via the `s` helper function:
 
-By default, it will look for `/resources/views/layout.latte`, but you can configure specific entries
-and collections to use different layouts instead by setting `layout: other_layout` on the entry or
-collection config file.
+**Antlers**
 
-## Modifiers → Filters
+```antlers
+{{ collection:pages take="8" }}
+  {{ title }}
+{{ /collection }}
+```
 
-The core modifiers built into Statamic can also be used as filters in Latte:
+**Latte**
+
+```latte
+{foreach s('collection:pages', take: 8) as $entry}
+  {$entry->title}
+{/foreach}
+```
+
+## Modifiers
+
+[Statamic Modifiers](https://statamic.dev/modifiers) can also be used as filters in Latte:
 
 **Antlers**
 
@@ -92,6 +103,15 @@ Rendered in Latte: {$title}
     Rendered in Antlers: {{ title }}
 {/antlers}
 ```
+
+## Layout
+
+Just like in Antlers templates, the correct layout file will be used based on the data available in
+your entries and blueprints.
+
+By default, it will look for `/resources/views/layout.latte`, but you can configure specific entries
+and collections to use different layouts instead by setting `layout: other_layout` on the entry or
+collection config file.
 
 ## Caching
 
