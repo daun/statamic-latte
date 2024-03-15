@@ -53,7 +53,7 @@ final class StatamicNode extends StatementNode
     {
         return $context->format(
             <<<'XX'
-                $result = \Statamic\Tags\FluentTag::make(%node) %line
+                $result = Statamic::tag(%node) %line
                     ->context(get_defined_vars())
                     ->params(%node)
                     ->fetch();
