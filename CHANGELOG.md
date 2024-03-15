@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.0] - 2024-03-15
+
+* Add helper function to fetch tag output
+
 ## [1.0.1] - 2024-03-11
 
 * Expand test coverage
@@ -8,5 +12,6 @@
 
 * Initial release
 
+[1.1.0]: https://github.com/daun/statamic-latte/releases/tag/1.1.0
 [1.0.1]: https://github.com/daun/statamic-latte/releases/tag/1.0.1
 [1.0.0]: https://github.com/daun/statamic-latte/releases/tag/1.0.0
