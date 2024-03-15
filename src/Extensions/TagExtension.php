@@ -21,7 +21,7 @@ class TagExtension extends Extension
     /**
      * Fetch the output of a Statamic tag.
      *
-     * @param string $name The tag name
+     * @param  string  $name  The tag name
      * @param [mixed] ...$args The tag parameters
      * @return mixed The tag output
      */
