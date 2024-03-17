@@ -1,7 +1,12 @@
 {
     "name": "daun/statamic-latte",
     "description": "Use Latte templates on Statamic sites",
-    "keywords": [ "statamic", "latte", "nette", "view" ],
+    "keywords": [
+        "statamic",
+        "latte",
+        "nette",
+        "view"
+    ],
     "type": "statamic-addon",
     "autoload": {
         "psr-4": {
@@ -10,9 +15,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-          "Tests\\": "tests/"
+            "Tests\\": "tests/"
         }
-      },
+    },
     "license": "MIT",
     "authors": [
         {
