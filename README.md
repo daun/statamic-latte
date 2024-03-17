@@ -7,14 +7,14 @@
 
 Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](https://statamic.com/) sites.
 
-## Features
+## ✨ Features
 
 - Render `.latte` views
 - Use Statamic's built-in tags and modifiers
 - Resolve the current layout from entry data
 - Render Antlers inline where useful
 
-## Installation
+## 🛠️ Installation
 
 Run the following command from your project root:
 
@@ -25,7 +25,7 @@ composer require daun/statamic-latte
 Alternatively, you can search for this addon in the `Tools > Addons` section of
 the Statamic control panel and install it from there.
 
-## Usage
+## 🎨 Usage
 
 Once installed, you're ready to use Latte views in your frontend. Just save or rename your views
 using the extension `.latte` and reference them as usual. Of course, you can use both side-by-side
@@ -54,7 +54,7 @@ as long as you're making sure there's only ever one identically named view.
 </ul>
 ```
 
-## Tags
+### Tags
 
 [Statamic Tags](https://statamic.dev/tags) can be used via the `s` helper function:
 
@@ -74,7 +74,7 @@ as long as you're making sure there's only ever one identically named view.
 {/foreach}
 ```
 
-## Modifiers
+### Modifiers
 
 [Statamic Modifiers](https://statamic.dev/modifiers) can also be used as filters in Latte:
 
@@ -90,7 +90,7 @@ as long as you're making sure there's only ever one identically named view.
 <h1>{$title|upper|truncate:50}</h1>
 ```
 
-## Mix & Match
+### Mix & Match
 
 If you ever need to combine Latte and Antlers code, you can use the `antlers` tag in your
 Latte views to render Antlers code inline. This can be useful for complex built-in tags or quick
@@ -104,7 +104,7 @@ Rendered in Latte: {$title}
 {/antlers}
 ```
 
-## Layout
+### Layout
 
 Just like in Antlers templates, the correct layout file will be used based on the data available in
 your entries and blueprints.
@@ -113,9 +113,9 @@ By default, it will look for `/resources/views/layout.latte`, but you can config
 and collections to use different layouts instead by setting `layout: other_layout` on the entry or
 collection config file.
 
-## Caching
+### Caching
 
-### Cache
+#### Cache
 
 Use the `cache` tag to cache parts of a view.
 
@@ -127,7 +127,7 @@ Use the `cache` tag to cache parts of a view.
 {/cache}
 ```
 
-### Nocache
+#### Nocache
 
 The `nocache` tag can be used to exempt part of a view from
 [static caching](https://statamic.dev/static-caching).
@@ -146,7 +146,7 @@ The `nocache` tag can be used to exempt part of a view from
 {block content}{/block}
 ```
 
-### Limitations
+#### Limitations
 
 The `nocache` tag is only supported for application-level static caching. Full file-based caching
 requires JavaScript for `nocache` to work, which isn't yet implemented in this addon. See
