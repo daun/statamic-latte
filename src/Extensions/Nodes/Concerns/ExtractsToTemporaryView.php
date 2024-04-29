@@ -8,6 +8,7 @@ use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\ContentType;
+use Latte\Engine;
 use WeakMap;
 
 trait ExtractsToTemporaryView
@@ -25,7 +26,9 @@ trait ExtractsToTemporaryView
 
         // Temporarily disable {} syntax
         $lexer = $parser->getLexer();
-        static::$lexerDelimiters[$tag] = [$lexer->openDelimiter, $lexer->closeDelimiter];
+        if (Engine::VersionId < 30014) {
+            static::$lexerDelimiters[$tag] = [$lexer->openDelimiter, $lexer->closeDelimiter];
+        }
         $lexer->setSyntax('off', $tag->isNAttribute() ? null : $tag->name);
 
         // Switch to text content type
@@ -37,7 +40,9 @@ trait ExtractsToTemporaryView
     {
         // Restore previous syntax and content type
         $lexer = $parser->getLexer();
-        [$lexer->openDelimiter, $lexer->closeDelimiter] = static::$lexerDelimiters[$tag];
+        if (Engine::VersionId < 30014) {
+            [$lexer->openDelimiter, $lexer->closeDelimiter] = static::$lexerDelimiters[$tag];
+        }
         $parser->setContentType(static::$contentTypes[$tag]);
     }
 
