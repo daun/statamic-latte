@@ -42,6 +42,8 @@ trait ExtractsToTemporaryView
         $lexer = $parser->getLexer();
         if (Engine::VersionId < 30014) {
             [$lexer->openDelimiter, $lexer->closeDelimiter] = static::$lexerDelimiters[$tag];
+        } else {
+            $lexer->popSyntax();
         }
         $parser->setContentType(static::$contentTypes[$tag]);
     }
