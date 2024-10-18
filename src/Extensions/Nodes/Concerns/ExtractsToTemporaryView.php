@@ -21,8 +21,8 @@ trait ExtractsToTemporaryView
 
     protected static function disableParserForTag(Tag $tag, TemplateParser $parser): void
     {
-        static::$lexerDelimiters = static::$lexerDelimiters ?? new WeakMap();
-        static::$contentTypes = static::$contentTypes ?? new WeakMap();
+        static::$lexerDelimiters = static::$lexerDelimiters ?? new WeakMap;
+        static::$contentTypes = static::$contentTypes ?? new WeakMap;
 
         // Temporarily disable {} syntax
         $lexer = $parser->getLexer();

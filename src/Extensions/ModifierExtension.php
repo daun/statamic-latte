@@ -24,7 +24,7 @@ class ModifierExtension extends Extension
     public function __construct(Engine $latte)
     {
         $this->latte = $latte;
-        $this->core = new CoreExtension();
+        $this->core = new CoreExtension;
         $this->loader = app()->make(Loader::class);
         $this->modifiers = app('statamic.modifiers');
     }
