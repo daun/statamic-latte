@@ -49,8 +49,6 @@ class CacheNode
         $auth = auth(config('statamic.users.guards.cp', 'web'));
         $scope = $params['scope'] ?? ['site', 'auth'];
         $site = Site::current()->handle();
-        $page = URL::makeAbsolute(URL::getCurrent());
-        $user = $auth->user()?->id ?? 'guest';
 
         $parts = [
             'key' => $key,
@@ -58,8 +56,8 @@ class CacheNode
             'auth' => $auth->check(),
             'site' => $site,
             'scope' => collect($scope)->flip()->map(fn ($_, $s) => match ($s) {
-                'page' => $page,
-                'user' => $user,
+                'page' => URL::makeAbsolute(URL::getCurrent()),
+                'user' => $auth->user()?->id ?? 'guest',
                 default => null,
             })->all(),
         ];
