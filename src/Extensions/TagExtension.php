@@ -22,7 +22,7 @@ class TagExtension extends Extension
      * Fetch the output of a Statamic tag.
      *
      * @param  string  $name  The tag name
-     * @param mixed ...$args The tag parameters
+     * @param  mixed  ...$args  The tag parameters
      * @return mixed The tag output
      */
     public function statamic(string $name, ...$args): mixed
