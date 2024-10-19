@@ -42,8 +42,8 @@
     },
     "require": {
         "php": "^8.1",
-        "laravel/framework": "^9.0 || ^10.0",
-        "statamic/cms": "^4.0",
+        "laravel/framework": "^9.0 || ^10.0 || ^11.0",
+        "statamic/cms": "^4.0 || ^5.0",
         "daun/laravel-latte": "^1.1.0"
     },
     "require-dev": {
