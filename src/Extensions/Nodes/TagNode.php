@@ -38,6 +38,7 @@ final class TagNode extends StatementNode
                 $ʟ_params = %node;
                 $ʟ_result = \Daun\StatamicLatte\Support\Tags::fetch($ʟ_name, $ʟ_params); %line
                 ray($ʟ_name, $ʟ_params, $ʟ_result);
+                $result = $ʟ_result;
                 %node
                 XX,
             $this->name,
