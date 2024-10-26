@@ -48,4 +48,11 @@ class TagExtension extends Extension
             's' => [Tags::class, 'fetch'],
         ];
     }
+
+    public function getPasses(): array
+    {
+        return [
+            'statamicTags' => [TagNode::class, 'processPass']
+        ];
+    }
 }
