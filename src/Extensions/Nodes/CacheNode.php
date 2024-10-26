@@ -33,10 +33,10 @@ final class CacheNode extends StatementNode
         return $context->format(
             <<<'XX'
                 $ʟ_params = %node;
-                if (\Daun\StatamicLatte\Support\CacheNode::enabled($ʟ_params)) {
-                    $ʟ_store = \Daun\StatamicLatte\Support\CacheNode::store($ʟ_params);
-                    $ʟ_key = \Daun\StatamicLatte\Support\CacheNode::key($ʟ_params, %dump);
-                    $ʟ_expires = \Daun\StatamicLatte\Support\CacheNode::expires($ʟ_params);
+                if (\Daun\StatamicLatte\Support\Cache::enabled($ʟ_params)) {
+                    $ʟ_store = \Daun\StatamicLatte\Support\Cache::store($ʟ_params);
+                    $ʟ_key = \Daun\StatamicLatte\Support\Cache::key($ʟ_params, %dump);
+                    $ʟ_expires = \Daun\StatamicLatte\Support\Cache::expires($ʟ_params);
                     if ($ʟ_output = $ʟ_store->get($ʟ_key)) %line {
                         echo $ʟ_output;
                     } else {

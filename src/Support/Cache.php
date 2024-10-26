@@ -4,11 +4,11 @@ namespace Daun\StatamicLatte\Support;
 
 use Carbon\Carbon;
 use Illuminate\Cache\Repository;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cache as IlluminateCache;
 use Statamic\Facades\Site;
 use Statamic\Facades\URL;
 
-class CacheNode
+class Cache
 {
     public static function enabled(?array $params = []): bool
     {
@@ -25,7 +25,7 @@ class CacheNode
         $main = $params[0] ?? null;
         $tags = $params['tags'] ?? (is_array($main) ? $main : null);
 
-        $store = Cache::store();
+        $store = IlluminateCache::store();
         if (is_array($tags) && count($tags)) {
             $store = $store->tags($tags);
         }
