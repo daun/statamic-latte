@@ -46,6 +46,6 @@ class ModifierExtension extends Extension
 
     protected function applyModifier(string $name, $value, ...$args): mixed
     {
-        return ($this->loader->load($name))($value, $args);
+        return ($this->loader->load($name))($value, $args, []);
     }
 }
