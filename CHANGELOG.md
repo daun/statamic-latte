@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.1] - 2025-01-06
+
+- Pass default context into modifiers
+
 ## [1.2.0] - 2024-10-19
 
 - Add support for Statamic 5 and Laravel 11
@@ -20,6 +24,7 @@
 
 - Initial release
 
+[1.2.1]: https://github.com/daun/statamic-latte/releases/tag/1.2.1
 [1.2.0]: https://github.com/daun/statamic-latte/releases/tag/1.2.0
 [1.1.1]: https://github.com/daun/statamic-latte/releases/tag/1.1.1
 [1.1.0]: https://github.com/daun/statamic-latte/releases/tag/1.1.0
