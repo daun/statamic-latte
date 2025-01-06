@@ -19,6 +19,11 @@ class Tags
         return Str::replaceStart(self::PREFIX, '', $name);
     }
 
+    public static function equals(string $name, string $check): string
+    {
+        return static::unprefix($name) === static::unprefix($check);
+    }
+
     /**
      * Fetch the output of a Statamic tag.
      *
