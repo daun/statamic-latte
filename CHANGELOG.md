@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.0] - 2025-03-06
+
+- Add support for Laravel 12
+
 ## [1.2.1] - 2025-01-06
 
 - Pass default context into modifiers
@@ -24,6 +28,7 @@
 
 - Initial release
 
+[1.3.0]: https://github.com/daun/statamic-latte/releases/tag/1.3.0
 [1.2.1]: https://github.com/daun/statamic-latte/releases/tag/1.2.1
 [1.2.0]: https://github.com/daun/statamic-latte/releases/tag/1.2.0
 [1.1.1]: https://github.com/daun/statamic-latte/releases/tag/1.1.1
