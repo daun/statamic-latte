@@ -1,24 +1,14 @@
 {
     "name": "daun/statamic-latte",
     "description": "Use Latte templates on Statamic sites",
+    "license": "MIT",
+    "type": "statamic-addon",
     "keywords": [
         "statamic",
         "latte",
         "nette",
         "view"
     ],
-    "type": "statamic-addon",
-    "autoload": {
-        "psr-4": {
-            "Daun\\StatamicLatte\\": "src"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
-    },
-    "license": "MIT",
     "authors": [
         {
             "name": "Philipp Daun",
@@ -29,43 +19,52 @@
     "support": {
         "email": "post@philippdaun.net"
     },
-    "extra": {
-        "statamic": {
-            "name": "Latte Template Engine",
-            "description": "Add support for the Latte templating engine"
-        },
-        "laravel": {
-            "providers": [
-                "Daun\\StatamicLatte\\ServiceProvider"
-            ]
-        }
-    },
     "require": {
-        "php": "^8.1",
-        "daun/laravel-latte": "^1.0",
-        "laravel/framework": "^9.0 || ^10.0 || ^11.0 || ^12.0",
-        "statamic/cms": "^4.0 || ^5.0"
+        "php": "^8.3",
+        "miko/laravel-latte": "^3.0",
+        "statamic/cms": "^6.0"
     },
     "require-dev": {
-        "larastan/larastan": "^2.9 || ^3.0",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
         "mockery/mockery": "^1.6",
-        "orchestra/testbench": "^9.5 || ^10.0",
-        "pestphp/pest": "^3.3",
-        "pestphp/pest-plugin-laravel": "^3.0"
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0"
     },
-    "scripts": {
-        "format": "./vendor/bin/pint",
-        "lint": "./vendor/bin/pint --test",
-        "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G",
-        "test": "./vendor/bin/pest",
-        "test:coverage": "./vendor/bin/pest --coverage",
-        "test:ci": "./vendor/bin/pest --coverage-clover coverage.xml"
+    "autoload": {
+        "psr-4": {
+            "Daun\\StatamicLatte\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "pixelfear/composer-dist-plugin": true
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Daun\\StatamicLatte\\ServiceProvider"
+            ]
+        },
+        "statamic": {
+            "description": "Add support for the Latte templating engine",
+            "name": "Latte Template Engine"
+        }
+    },
+    "scripts": {
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=2G",
+        "format": "./vendor/bin/pint",
+        "lint": "./vendor/bin/pint --test",
+        "test": "./vendor/bin/pest",
+        "test:ci": "./vendor/bin/pest --coverage-clover coverage.xml",
+        "test:coverage": "./vendor/bin/pest --coverage"
     }
 }
