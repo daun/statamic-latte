@@ -2,7 +2,7 @@
 
 namespace Tests;
 
-use Daun\LaravelLatte\ServiceProvider as LatteServiceProvider;
+use Miko\LaravelLatte\ServiceProvider as LatteServiceProvider;
 use Daun\StatamicLatte\ServiceProvider as AddonServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Statamic\Extend\Manifest;
