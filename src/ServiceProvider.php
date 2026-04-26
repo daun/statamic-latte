@@ -2,9 +2,6 @@
 
 namespace Daun\StatamicLatte;
 
-use Daun\LaravelLatte\Events\LatteEngineCreated;
-use Daun\LaravelLatte\Facades\Latte;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Latte\Engine;
 use Statamic\Providers\AddonServiceProvider;
@@ -21,15 +18,6 @@ class ServiceProvider extends AddonServiceProvider
 
     public static $temporaryViewNamespace = 'statamic-latte-temp';
 
-    protected ?Engine $latte = null;
-
-    public function register(): void
-    {
-        Event::listen(function (LatteEngineCreated $event) {
-            $this->latte = $event->engine;
-        });
-    }
-
     public function bootAddon()
     {
         $this->installExtensions();
@@ -38,9 +26,9 @@ class ServiceProvider extends AddonServiceProvider
 
     protected function installExtensions(): void
     {
-        $extensions = $this->app['config']->get('latte.statamic.extensions', static::$defaultExtensions);
-        foreach ($extensions as $extension) {
-            Latte::addExtension(new $extension($this->latte));
+        $engine = $this->app->get(Engine::class);
+        foreach (static::$defaultExtensions as $extension) {
+            $engine->addExtension(new $extension($engine));
         }
     }
 

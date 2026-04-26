@@ -9,8 +9,7 @@ test('adds addon view namespace', function () {
 });
 
 test('installs default extensions', function () {
-    /** @var \Latte\Engine $engine */
-    $engine = $this->app->get('latte.engine');
+    $engine = $this->app->get(\Latte\Engine::class);
     $extensions = collect($engine->getExtensions())->map(fn ($extension) => get_class($extension));
     expect($extensions)->toContain(...ServiceProvider::$defaultExtensions);
 });
