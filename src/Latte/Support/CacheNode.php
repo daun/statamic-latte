@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Support;
+namespace Daun\StatamicLatte\Latte\Support;
 
 use Carbon\Carbon;
 use Illuminate\Cache\Repository;

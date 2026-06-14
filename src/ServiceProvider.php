@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte;
 
+use Daun\StatamicLatte\Latte\Extensions;
 use Illuminate\Support\Facades\View;
 use Latte\Engine;
 use Statamic\Providers\AddonServiceProvider;
@@ -9,11 +10,11 @@ use Statamic\Providers\AddonServiceProvider;
 class ServiceProvider extends AddonServiceProvider
 {
     public static $defaultExtensions = [
-        \Daun\StatamicLatte\Extensions\AntlersExtension::class,
-        \Daun\StatamicLatte\Extensions\CacheExtension::class,
-        \Daun\StatamicLatte\Extensions\LayoutExtension::class,
-        \Daun\StatamicLatte\Extensions\ModifierExtension::class,
-        \Daun\StatamicLatte\Extensions\TagExtension::class,
+        Extensions\AntlersExtension::class,
+        Extensions\CacheExtension::class,
+        Extensions\LayoutExtension::class,
+        Extensions\ModifierExtension::class,
+        Extensions\TagExtension::class,
     ];
 
     public static $temporaryViewNamespace = 'statamic-latte-temp';
@@ -34,7 +35,7 @@ class ServiceProvider extends AddonServiceProvider
 
     protected function registerViewNamespace(): void
     {
-        $namespace = $this->app['config']->get('view.compiled');
+        $namespace = $this->app->get('config')->get('view.compiled');
         View::addNamespace(static::$temporaryViewNamespace, $namespace);
     }
 }

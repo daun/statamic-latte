@@ -1,29 +1,33 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions\Nodes;
+namespace Daun\StatamicLatte\Latte\Extensions\Nodes;
 
+use Latte\CompileException;
 use Latte\Compiler\Nodes\AreaNode;
-use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 
 /**
- * {nocache} {/nocache}
+ * {antlers} {/antlers}
  */
-final class NocacheNode extends StatementNode
+final class AntlersNode extends StatementNode
 {
     use Concerns\ExtractsToTemporaryView;
 
-    public ArrayNode $args;
+    protected string $viewFileExtension = 'antlers.html';
 
     /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
         $node = $tag->node = new self;
-        $tag->parser->stream->tryConsume(',');
-        $node->args = $tag->parser->parseArguments();
+        if (! $tag->parser->isEnd()) {
+            throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
+        }
+        if ($tag->isNAttribute()) {
+            throw new CompileException('Attribute n:antlers is not supported.', $tag->position);
+        }
 
         // Read inner content as raw text
         self::disableParserForTag($tag, $parser);
@@ -36,10 +40,9 @@ final class NocacheNode extends StatementNode
     public function print(PrintContext $context): string
     {
         return $context->format(
-            'echo app("Statamic\StaticCaching\NoCache\BladeDirective")->handle(%dump, ["__layout_parent" => $this->getName()] + %node); %line;',
+            'echo view(%dump, ["__layout_parent" => $this->getName()] + get_defined_vars())->render() %line;',
             $this->saveContentToView(),
-            $this->args,
-            $this->position,
+            $this->position
         );
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions;
+namespace Daun\StatamicLatte\Latte\Extensions;
 
 use Latte\Extension;
 use Latte\Runtime\Template;

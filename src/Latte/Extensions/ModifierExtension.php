@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions;
+namespace Daun\StatamicLatte\Latte\Extensions;
 
 use Illuminate\Support\Collection;
 use Latte\Engine;

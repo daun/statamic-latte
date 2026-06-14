@@ -1,8 +1,8 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions;
+namespace Daun\StatamicLatte\Latte\Extensions;
 
-use Daun\StatamicLatte\Extensions\Nodes\AntlersNode;
+use Daun\StatamicLatte\Latte\Extensions\Nodes\AntlersNode;
 use Latte\Extension;
 
 /**

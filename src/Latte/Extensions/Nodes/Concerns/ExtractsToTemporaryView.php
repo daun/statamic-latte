@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions\Nodes\Concerns;
+namespace Daun\StatamicLatte\Latte\Extensions\Nodes\Concerns;
 
 use Daun\StatamicLatte\ServiceProvider;
 use Latte\Compiler\NodeHelpers;
