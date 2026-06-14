@@ -60,6 +60,18 @@ describe('paginated tags', function () {
         LATTE)
             ->assertSee('total:2 pages:2 page:1 count:1');
     });
+
+    test('loops the paginator and prints page meta via the `as` param', function () {
+        $this->latte(<<<'LATTE'
+            {s:collection as: entries, from: pages, order: title, paginate: 1}
+                {foreach $entries as $entry}|{$entry->title}|{/foreach}
+                Showing page {$entries->currentPage()} of {$entries->lastPage()}, {$entries->total()} total
+            {/s:collection}
+        LATTE)
+            ->assertSee('|Testable|')
+            ->assertDontSee('Testable With Layout')
+            ->assertSee('Showing page 1 of 2, 2 total');
+    });
 });
 
 describe('params', function () {
