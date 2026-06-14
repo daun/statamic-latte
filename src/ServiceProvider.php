@@ -18,6 +18,7 @@ class ServiceProvider extends AddonServiceProvider
         Extensions\LayoutExtension::class,
         Extensions\ModifierExtension::class,
         Extensions\ResolverExtension::class,
+        Extensions\SectionExtension::class,
         Extensions\TagExtension::class,
     ];
 

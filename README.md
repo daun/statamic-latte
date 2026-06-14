@@ -113,6 +113,63 @@ By default, it will look for `/resources/views/layout.latte`, but you can config
 and collections to use different layouts instead by setting `layout: other_layout` on the entry or
 collection config file.
 
+### Sections & Yields
+
+Use the `section` and `yield` tags to define content in one place and output it in
+another — typically defining a section in a template or partial and yielding it in
+your layout. They map directly to Antlers' `{{ section }}` / `{{ yield }}` tags.
+
+**Antlers**
+
+```antlers
+{{# template #}}
+{{ section:breadcrumbs }}
+    <a href="/">Home</a>
+{{ /section:breadcrumbs }}
+
+{{# layout #}}
+{{ yield:breadcrumbs }}
+```
+
+**Latte**
+
+```latte
+{* template *}
+{section 'breadcrumbs'}
+    <a href="/">Home</a>
+{/section}
+
+{* layout *}
+{yield 'breadcrumbs' /}
+```
+
+Use the self-closing form `{yield 'name' /}` when there's no fallback. To provide
+default content for when no section was defined, use the paired form:
+
+```latte
+{yield 'subheading'}Default subheading{/yield}
+```
+
+A section can be defined anywhere — including deep inside an included partial — and
+yielded anywhere, regardless of render order. So a partial can inject `<link>` tags
+into the document `<head>`:
+
+```latte
+{* partials/pagination.latte *}
+{section 'head'}
+    <link rel="next" href="{$next_page}">
+{/section}
+
+{* layout.latte *}
+<head>
+    {yield 'head' /}
+</head>
+```
+
+Sections and yields share Statamic's underlying content store, so they interoperate
+freely across Latte, Antlers and Blade templates: a section defined in an Antlers
+partial can be yielded in a Latte layout, and vice versa.
+
 ### Caching
 
 #### Cache
