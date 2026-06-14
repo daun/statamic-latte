@@ -16,7 +16,7 @@ describe('helpers', function () {
 
     test('captures a paginator into a variable for foreach and page meta', function () {
         $this->latte(<<<'LATTE'
-            {var $entries = s("collection", ["from" => "pages", "order" => "title", "paginate" => 1])}
+            {var $entries = s("collection", ["from" => "pages", "sort" => "title", "paginate" => 1])}
             {foreach $entries as $entry}
                 |{$entry->title}|
             {/foreach}

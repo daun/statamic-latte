@@ -30,7 +30,7 @@ describe('subexpression', function () {
 
     test('captures iterable tag output into a variable', function () {
         $this->latte(<<<'LATTE'
-            {var $entries = (s:collection from: pages, order: title)}
+            {var $entries = (s:collection from: pages, sort: title)}
             {foreach $entries as $entry}{$entry->title}{sep}, {/sep}{/foreach}
         LATTE)
             ->assertSee('Testable, Testable With Layout');
@@ -60,7 +60,7 @@ describe('expressions', function () {
 
     test('works directly in a foreach', function () {
         $this->latte(<<<'LATTE'
-            {foreach (s:collection from: pages, order: title) as $entry}{$entry->title}{sep}, {/sep}{/foreach}
+            {foreach (s:collection from: pages, sort: title) as $entry}{$entry->title}{sep}, {/sep}{/foreach}
         LATTE)
             ->assertSee('Testable, Testable With Layout');
     });

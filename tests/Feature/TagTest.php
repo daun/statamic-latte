@@ -21,12 +21,12 @@ describe('scalar tags', function () {
 
 describe('iterable tags', function () {
     test('renders iterable statamic tags using foreach loop', function () {
-        $this->latte('{s:collection from: pages, order: title}{$value->title}{sep}, {/sep}{/s:collection}')
+        $this->latte('{s:collection from: pages, sort: title}{$value->title}{sep}, {/sep}{/s:collection}')
             ->assertSee('Testable, Testable With Layout');
     });
 
     test('saves result into local variable using `as` param', function () {
-        $this->latte('{s:collection as: entries, from: pages, order: title}{foreach $entries as $entry}{$entry->title}{sep}, {/sep}{/foreach}{/s:collection}')
+        $this->latte('{s:collection as: entries, from: pages, sort: title}{foreach $entries as $entry}{$entry->title}{sep}, {/sep}{/foreach}{/s:collection}')
             ->assertSee('Testable, Testable With Layout');
     });
 
@@ -39,7 +39,7 @@ describe('iterable tags', function () {
 describe('paginated tags', function () {
     test('iterates a paginated result as a laravel paginator', function () {
         $this->latte(<<<'LATTE'
-            {s:collection from: pages, order: title, paginate: 1}
+            {s:collection from: pages, sort: title, paginate: 1}
                 |{$value->title}|
             {/s:collection}
         LATTE)
@@ -49,7 +49,7 @@ describe('paginated tags', function () {
 
     test('exposes the paginator api via the `as` param', function () {
         $this->latte(<<<'LATTE'
-            {s:collection as: paginator, from: pages, order: title, paginate: 1}
+            {s:collection as: paginator, from: pages, sort: title, paginate: 1}
                 total:{$paginator->total()} pages:{$paginator->lastPage()} page:{$paginator->currentPage()} count:{$paginator->count()}
             {/s:collection}
         LATTE)
@@ -58,7 +58,7 @@ describe('paginated tags', function () {
 
     test('loops the paginator and prints page meta via the `as` param', function () {
         $this->latte(<<<'LATTE'
-            {s:collection as: entries, from: pages, order: title, paginate: 1}
+            {s:collection as: entries, from: pages, sort: title, paginate: 1}
                 {foreach $entries as $entry}|{$entry->title}|{/foreach}
                 Showing page {$entries->currentPage()} of {$entries->lastPage()}, {$entries->total()} total
             {/s:collection}
@@ -70,7 +70,7 @@ describe('paginated tags', function () {
 
     test('captures a paginator from a tag subexpression into a variable', function () {
         $this->latte(<<<'LATTE'
-            {var $entries = (s:collection from: pages, order: title, paginate: 1)}
+            {var $entries = (s:collection from: pages, sort: title, paginate: 1)}
             {foreach $entries as $entry}|{$entry->title}|{/foreach}
             Showing page {$entries->currentPage()} of {$entries->lastPage()}, {$entries->total()} total
         LATTE)
@@ -180,7 +180,7 @@ describe('tag methods', function () {
     });
 
     test('accepts wildcard tag methods', function () {
-        $this->latte('{s:collection:pages order: title}{$value->title}{sep}, {/sep}{/s:collection:pages}')
+        $this->latte('{s:collection:pages sort: title}{$value->title}{sep}, {/sep}{/s:collection:pages}')
             ->assertSee('Testable, Testable With Layout');
     });
 });

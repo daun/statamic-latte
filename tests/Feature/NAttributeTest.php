@@ -15,14 +15,14 @@
 describe('n:foreach', function () {
     test('iterates a tag sub-expression directly', function () {
         $this->latte(<<<'LATTE'
-            <ul><li n:foreach="(s:collection from: pages, order: title) as $entry">{$entry->title}</li></ul>
+            <ul><li n:foreach="(s:collection from: pages, sort: title) as $entry">{$entry->title}</li></ul>
         LATTE)
             ->assertSeeInOrder(['<li>Testable</li>', '<li>Testable With Layout</li>'], false);
     });
 
     test('iterates a tag sub-expression captured into a variable', function () {
         $this->latte(<<<'LATTE'
-            {var $entries = (s:collection from: pages, order: title)}
+            {var $entries = (s:collection from: pages, sort: title)}
             <ul><li n:foreach="$entries as $entry">{$entry->title}</li></ul>
         LATTE)
             ->assertSeeInOrder(['<li>Testable</li>', '<li>Testable With Layout</li>'], false);
@@ -130,7 +130,7 @@ describe('block tag', function () {
 
     test('survives n:foreach inside an iterable {s:collection} block', function () {
         $this->latte(<<<'LATTE'
-            {s:collection from: pages, order: title}
+            {s:collection from: pages, sort: title}
                 <a n:attr="href: (s:link to: 'snacks')">{$value->title}</a>
             {/s:collection}
         LATTE)
