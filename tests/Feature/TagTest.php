@@ -44,7 +44,23 @@ describe('iterable tags', function () {
 describe('params', function () {
     test('accepts nested params', function () {
         $this->latte(<<<'LATTE'
+            {s:collection from: pages, status:is => draft}
+                {$value->title}{sep}, {/sep}
+            {/s:collection}
+        LATTE)
+            ->assertDontSee('Testable,')
+            ->assertSee('Testable Draft');
+
+        $this->latte(<<<'LATTE'
             {s:collection from: pages, title:contains: Layout}
+                {$value->title}{sep}, {/sep}
+            {/s:collection}
+        LATTE)
+            ->assertDontSee('Testable,')
+            ->assertSee('Testable With Layout');
+
+        $this->latte(<<<'LATTE'
+            {s:collection from: pages, title:contains:"Layout"}
                 {$value->title}{sep}, {/sep}
             {/s:collection}
         LATTE)
@@ -63,6 +79,16 @@ describe('params', function () {
         $this->latte(<<<'LATTE'
             {var $titleFilter = 'Layout'}
             {s:collection from: pages, title:contains:$titleFilter}
+                {$value->title}{sep}, {/sep}
+            {/s:collection}
+        LATTE)
+            ->assertDontSee('Testable,')
+            ->assertSee('Testable With Layout');
+
+        $this->latte(<<<'LATTE'
+            {var $titleFilter1 = 'With '}
+            {var $titleFilter2 = 'Layout'}
+            {s:collection from: pages, title:contains:$titleFilter1.$titleFilter2}
                 {$value->title}{sep}, {/sep}
             {/s:collection}
         LATTE)

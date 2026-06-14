@@ -90,12 +90,14 @@ final class TagNode extends StatementNode
         $text = self::escapeNestedKeys($tag->parser->text);
         $args = (new TagParser((new TagLexer)->tokenize($text)))->parseArguments();
 
+        // Restore the masked colons. A key written with Latte's colon syntax
+        // (`key: value`) parses to an IdentifierNode, while the array fat-arrow
+        // syntax (`key => value`) parses to a StringNode — handle both.
         foreach ($args->items as $item) {
-            if ($item->key instanceof IdentifierNode && str_contains($item->key->name, self::COLON_PLACEHOLDER)) {
-                $item->key = new IdentifierNode(
-                    str_replace(self::COLON_PLACEHOLDER, ':', $item->key->name),
-                    $item->key->position,
-                );
+            if ($item->key instanceof IdentifierNode) {
+                $item->key = new IdentifierNode(self::restoreColons($item->key->name), $item->key->position);
+            } elseif ($item->key instanceof StringNode) {
+                $item->key = new StringNode(self::restoreColons($item->key->value), $item->key->position);
             }
         }
 
@@ -105,6 +107,11 @@ final class TagNode extends StatementNode
         }
 
         return $args;
+    }
+
+    protected static function restoreColons(string $key): string
+    {
+        return str_replace(self::COLON_PLACEHOLDER, ':', $key);
     }
 
     /**
