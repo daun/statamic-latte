@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Loaders;
 
+use Daun\StatamicLatte\Latte\Support\TagExpressionSyntax;
 use Daun\StatamicLatte\Latte\Support\TagMethodSyntax;
 use Latte\Loader;
 
@@ -23,7 +24,10 @@ class TagMethodLoader implements Loader
 
     public function getContent(string $name): string
     {
-        return TagMethodSyntax::rewrite($this->inner->getContent($name));
+        $content = $this->inner->getContent($name);
+        $content = TagExpressionSyntax::rewrite($content);
+
+        return TagMethodSyntax::rewrite($content);
     }
 
     public function isExpired(string $name, int $time): bool

@@ -17,8 +17,8 @@ use Latte\Compiler\TagParser;
  * argument grammar accepts them, then restored on the parsed keys afterwards.
  *
  * Shared by {@see \Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode} (the
- * `{s:...}` tag) and {@see \Daun\StatamicLatte\Latte\Extensions\Nodes\VarNode}
- * (the `{var $x = (s:...)}` assignment).
+ * `{s:...}` tag) and {@see \Daun\StatamicLatte\Latte\Support\TagExpressionSyntax}
+ * (the inline `(s:...)` expression form, e.g. `{var $x = (s:...)}`).
  */
 class TagArguments
 {
