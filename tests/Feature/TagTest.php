@@ -21,23 +21,18 @@ describe('scalar tags', function () {
 
 describe('iterable tags', function () {
     test('renders iterable statamic tags using foreach loop', function () {
-        $this->latte(<<<'LATTE'
-            {s:collection from: pages, order: title}
-                {$value->title}{sep}, {/sep}
-            {/s:collection}
-        LATTE)
+        $this->latte('{s:collection from: pages, order: title}{$value->title}{sep}, {/sep}{/s:collection}')
             ->assertSee('Testable, Testable With Layout');
     });
 
     test('saves result into local variable using `as` param', function () {
-        $this->latte(<<<'LATTE'
-            {s:collection as: entries, from: pages, order: title}
-                {foreach $entries as $entry}
-                    {$entry->title}{sep}, {/sep}
-                {/foreach}
-            {/s:collection}
-        LATTE)
+        $this->latte('{s:collection as: entries, from: pages, order: title}{foreach $entries as $entry}{$entry->title}{sep}, {/sep}{/foreach}{/s:collection}')
             ->assertSee('Testable, Testable With Layout');
+    });
+
+    test('preserves internal whitespace in the tag body', function () {
+        $this->latte("{s:link to: 'snacks'} <pre>a  b</pre>{/s:link}", squish: false)
+            ->assertSee(' <pre>a  b</pre>', false);
     });
 });
 

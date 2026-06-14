@@ -24,6 +24,23 @@ class Sections
     /** @var array<string, array{name: string, default: string}> */
     protected static array $pending = [];
 
+    /** Render-tree depth; nested {nocache}/{antlers} re-enter the engine. */
+    protected static int $depth = 0;
+
+    public static function beginRender(): void
+    {
+        static::$depth++;
+    }
+
+    /** On the outermost render, drop any placeholders left unresolved. */
+    public static function endRender(): void
+    {
+        if (--static::$depth <= 0) {
+            static::$depth = 0;
+            static::$pending = [];
+        }
+    }
+
     /**
      * Store a section's contents where every engine can read them.
      */

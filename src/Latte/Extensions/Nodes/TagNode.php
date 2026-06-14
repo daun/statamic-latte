@@ -32,8 +32,6 @@ use Latte\Essential\Nodes\ForeachNode;
  *                 once; an empty or self-closing body falls back to echoing
  *                 the fetched output.
  *
- * Rendered body output is whitespace-squished, mirroring how templates are
- * normalised elsewhere, so loop separators produce clean output.
  *
  * Parameters accept Statamic-style nested keys (e.g. `title:contains: foo`),
  * which Latte's own argument grammar would otherwise reject.
@@ -135,7 +133,7 @@ final class TagNode extends StatementNode
                     $value = $ʟ_result;
                     %node
                 }
-                $ʟ_body = \Illuminate\Support\Str::squish(ob_get_clean());
+                $ʟ_body = ob_get_clean();
                 echo $ʟ_body === '' && ! $ʟ_iterable ? $ʟ_result : $ʟ_body;
                 XX,
             $this->printForeach($context),
@@ -179,7 +177,7 @@ final class TagNode extends StatementNode
                 if (array_key_exists('$as', $backup)) { \$$as = {$backup}['$as']; } else { unset(\$$as); }
                 unset($backup);
             }
-            echo \Illuminate\Support\Str::squish(ob_get_clean());
+            echo ob_get_clean();
 
             XX;
     }

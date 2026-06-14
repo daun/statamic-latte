@@ -22,12 +22,28 @@ class TagMethodLoader implements Loader
         protected Loader $inner,
     ) {}
 
+    /** Latte comments and raw {antlers} islands, where Statamic syntax stays literal. */
+    private const PROTECTED = '#(\{\*.*?\*\}|\{antlers\b[^}]*\}.*?\{/antlers\})#s';
+
     public function getContent(string $name): string
     {
-        $content = $this->inner->getContent($name);
-        $content = TagExpressionSyntax::rewrite($content);
+        return $this->rewrite($this->inner->getContent($name));
+    }
 
-        return TagMethodSyntax::rewrite($content);
+    /**
+     * Rewrite Statamic tag syntax in every part outside a protected region.
+     */
+    protected function rewrite(string $content): string
+    {
+        $parts = preg_split(self::PROTECTED, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 0) {
+                $parts[$i] = TagMethodSyntax::rewrite(TagExpressionSyntax::rewrite($part));
+            }
+        }
+
+        return implode('', $parts);
     }
 
     public function getReferredName(string $name, string $referringName): string

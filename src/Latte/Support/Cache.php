@@ -47,23 +47,23 @@ class Cache
         $main = $params[0] ?? null;
         $key = $params['key'] ?? (is_string($main) ? $main : null) ?? $contents;
         $auth = auth(config('statamic.users.guards.cp', 'web'));
+
+        // Only the dimensions listed in scope vary the key (default: site + auth).
         $scope = $params['scope'] ?? ['site', 'auth'];
-        $site = Site::current()->handle();
+        $scope = is_array($scope) ? $scope : explode('|', (string) $scope);
 
         $parts = [
             'key' => $key,
             'params' => $params,
-            'auth' => $auth->check(),
-            'site' => $site,
-            'scope' => collect($scope)->flip()->map(fn ($_, $s) => match ($s) {
-                'page' => URL::makeAbsolute(URL::getCurrent()),
+            'scope' => collect($scope)->mapWithKeys(fn ($s) => [$s => match ($s) {
+                'site' => Site::current()->handle(),
+                'auth' => $auth->check(),
                 'user' => $auth->check() ? $auth->user()->id : 'guest',
+                'page' => URL::makeAbsolute(URL::getCurrent()),
                 default => null,
-            })->all(),
+            }])->all(),
         ];
 
-        $hash = md5(json_encode($parts));
-
-        return "latte.statamic.cache.{$hash}";
+        return 'latte.statamic.cache.'.md5(serialize($parts));
     }
 }

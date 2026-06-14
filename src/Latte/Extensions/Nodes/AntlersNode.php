@@ -16,12 +16,11 @@ final class AntlersNode extends StatementNode
 {
     use Concerns\ExtractsToTemporaryView;
 
-    protected string $viewFileExtension = 'antlers.html';
-
     /** @return \Generator<int, AreaNode|null> */
     public static function create(Tag $tag, TemplateParser $parser): \Generator
     {
         $node = $tag->node = new self;
+        $node->viewFileExtension = 'antlers.html';
         if (! $tag->parser->isEnd()) {
             throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
         }

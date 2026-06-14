@@ -17,9 +17,14 @@ class NormalizingEngine extends LatteEngine
 {
     public function get($path, array $data = [])
     {
-        // Substitute deferred {yield} placeholders once the whole template
-        // (layout + body + partials) has rendered, so sections defined anywhere
-        // resolve regardless of render order.
-        return Sections::resolve(parent::get($path, Normalizer::data($data)));
+        // Substitute deferred {yield} placeholders once the whole template has
+        // rendered, so sections defined anywhere resolve regardless of order.
+        Sections::beginRender();
+
+        try {
+            return Sections::resolve(parent::get($path, Normalizer::data($data)));
+        } finally {
+            Sections::endRender();
+        }
     }
 }
