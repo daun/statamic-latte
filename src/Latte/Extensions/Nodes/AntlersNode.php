@@ -39,8 +39,11 @@ final class AntlersNode extends StatementNode
 
     public function print(PrintContext $context): string
     {
+        // Data crosses back out of Latte into Antlers here, so peel Content
+        // wrappers back to their raw Statamic sources — Antlers does its own
+        // augmentation and can't traverse our wrappers.
         return $context->format(
-            'echo view(%dump, ["__layout_parent" => $this->getName()] + get_defined_vars())->render() %line;',
+            'echo view(%dump, \Daun\StatamicLatte\Data\Normalizer::unwrap(["__layout_parent" => $this->getName()] + get_defined_vars()))->render() %line;',
             $this->saveContentToView(),
             $this->position
         );

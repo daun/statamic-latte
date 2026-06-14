@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
+use Daun\StatamicLatte\Data\Normalizer;
 use Illuminate\Support\Str;
 use Statamic\Statamic;
 
@@ -43,6 +44,8 @@ class Tags
             }
         }
 
-        return Statamic::tag($name)->params($params)->fetch();
+        // Normalize tag output to the same Content/array shapes as view data,
+        // so {foreach s('collection:pages') as $entry}{$entry->title} works.
+        return Normalizer::normalize(Statamic::tag($name)->params($params)->fetch());
     }
 }

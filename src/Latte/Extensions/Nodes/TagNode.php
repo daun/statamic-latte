@@ -116,7 +116,7 @@ final class TagNode extends StatementNode
         return $fetch."\n".$context->format(
             <<<'XX'
                 ob_start();
-                $ʟ_iterable = is_iterable($ʟ_result);
+                $ʟ_iterable = is_iterable($ʟ_result) && ! $ʟ_result instanceof \Daun\StatamicLatte\Data\Content;
                 if ($ʟ_iterable) {
                     %raw
                 } else {
