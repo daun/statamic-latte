@@ -30,11 +30,6 @@ class TagMethodLoader implements Loader
         return TagMethodSyntax::rewrite($content);
     }
 
-    public function isExpired(string $name, int $time): bool
-    {
-        return $this->inner->isExpired($name, $time);
-    }
-
     public function getReferredName(string $name, string $referringName): string
     {
         return $this->inner->getReferredName($name, $referringName);

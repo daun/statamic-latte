@@ -3,7 +3,7 @@
 namespace Daun\StatamicLatte\Latte\Support;
 
 use Carbon\Carbon;
-use Illuminate\Cache\Repository;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache as IlluminateCache;
 use Statamic\Facades\Site;
 use Statamic\Facades\URL;
@@ -57,7 +57,7 @@ class Cache
             'site' => $site,
             'scope' => collect($scope)->flip()->map(fn ($_, $s) => match ($s) {
                 'page' => URL::makeAbsolute(URL::getCurrent()),
-                'user' => $auth->user()?->id ?? 'guest',
+                'user' => $auth->check() ? $auth->user()->id : 'guest',
                 default => null,
             })->all(),
         ];

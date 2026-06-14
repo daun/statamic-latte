@@ -128,11 +128,13 @@ class Content implements ArrayAccess, IteratorAggregate
         }
         if ($this->source instanceof Values) {
             // Proxies a Collection; keys() returns field handles, no augmentation.
-            return $this->source->keys()->all();
+            return array_keys($this->source->toRawArray());
         }
 
         $this->augmented ??= $this->source->augmented();
 
+        // keys() lives on AbstractAugmented, not the Augmented contract.
+        // @phpstan-ignore method.notFound
         return $this->augmented->keys();
     }
 

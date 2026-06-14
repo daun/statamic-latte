@@ -3,7 +3,6 @@
 namespace Daun\StatamicLatte\Latte\Extensions;
 
 use Daun\StatamicLatte\Data\Resolver;
-use Latte\Engine;
 use Latte\Extension;
 
 /**
@@ -15,8 +14,6 @@ use Latte\Extension;
  */
 class ResolverExtension extends Extension
 {
-    public function __construct(Engine $latte) {}
-
     public function getFunctions(): array
     {
         return [
