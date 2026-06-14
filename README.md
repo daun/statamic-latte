@@ -33,13 +33,13 @@ control structures and smart attributes for expressive templating.
 **Antlers**
 
 ```antlers
-{{ if songs | count }}
+{{ if entries | count }}
   <p>
-    {{ songs }}
+    {{ entries }}
         <span data-details="{{ details | to_json | entities }}">
-            {{ value }}{{ if !last }}, {{ /if }}
+            {{ title }}{{ if !last }}, {{ /if }}
         </span>
-    {{ /songs }}
+    {{ /entries }}
   </p>
 {{ /if }}
 ```
@@ -48,8 +48,8 @@ control structures and smart attributes for expressive templating.
 
 ```latte
 <p n:ifcontent>
-    <span n:foreach="$songs as $song" data-details={$song->details}>
-        {$song}{sep}, {sep}
+    <span n:foreach="$entries as $entry" data-details={$entry->details}>
+        {$entry->title}{sep}, {sep}
     </span>
 </p>
 ```
