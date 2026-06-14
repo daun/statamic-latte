@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
+use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
 use Latte\CompileException;
 use Latte\Compiler\PrintContext;
 
@@ -23,9 +24,8 @@ use Latte\Compiler\PrintContext;
  * Statamic syntax (which Latte's grammar rejects) can be reconciled.
  *
  * Parameters are parsed with {@see TagArguments} — the same machinery the
- * {@see \Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode} uses — and printed
- * back to source, so nested keys, variables and barewords behave identically to
- * the block-tag form.
+ * {@see TagNode} uses — and printed back to source, so nested keys, variables and
+ * barewords behave identically to the block-tag form.
  *
  * The rewrite is a catch-all: every structurally valid `(s:<tag> ...)` is
  * lowered, regardless of whether the tag is currently registered. Resolution

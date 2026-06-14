@@ -12,8 +12,7 @@
  * application-router feature that resolves presenter/route actions, unrelated
  * to building plain href strings, and throws without a Nette router.
  */
-
-describe('inside n:foreach', function () {
+describe('n:foreach', function () {
     test('iterates a tag sub-expression directly', function () {
         $this->latte(<<<'LATTE'
             <ul><li n:foreach="(s:collection from: pages, order: title) as $entry">{$entry->title}</li></ul>
@@ -30,7 +29,7 @@ describe('inside n:foreach', function () {
     });
 });
 
-describe('inside n:if', function () {
+describe('n:if', function () {
     test('uses a scalar tag result as a boolean condition', function () {
         $this->latte(<<<'LATTE'
             <p n:if="(s:collection:count in: pages) > 1">many</p>
@@ -38,14 +37,14 @@ describe('inside n:if', function () {
             ->assertSee('<p>many</p>', false);
     });
 
-    test('a falsey comparison removes the element', function () {
+    test('removes the element on a falsey comparison', function () {
         $this->latte(<<<'LATTE'
             <p n:if="(s:collection:count in: pages) > 99">many</p>
         LATTE)
             ->assertDontSee('many');
     });
 
-    test('uses a tag result directly as a truthy condition (no comparison)', function () {
+    test('uses a tag result directly as a truthy condition', function () {
         // A non-zero count and a non-empty string are both truthy on their own.
         $this->latte(<<<'LATTE'
             <p n:if="(s:collection:count in: pages)">counted</p>
@@ -58,7 +57,7 @@ describe('inside n:if', function () {
             ->assertSee('<p>linked</p>', false);
     });
 
-    test('treats a zero/empty tag result as falsey (no comparison)', function () {
+    test('treats a zero or empty tag result as falsey', function () {
         // count of a no-match filter is 0 -> falsey.
         $this->latte(<<<'LATTE'
             <p n:if="(s:collection:count in: pages, title:contains: zzzzz)">yes</p>
@@ -76,7 +75,7 @@ describe('inside n:if', function () {
             ->assertDontSee('<p>yes</p>', false);
     });
 
-    test('works with n:elseif / n:else chains', function () {
+    test('works with n:else chains', function () {
         $this->latte(<<<'LATTE'
             <p n:if="(s:collection:count in: pages) > 99">lots</p>
             <p n:else>not lots</p>
@@ -86,7 +85,7 @@ describe('inside n:if', function () {
     });
 });
 
-describe('inside n:attr', function () {
+describe('n:attr', function () {
     test('builds an attribute value from a tag sub-expression', function () {
         $this->latte(<<<'LATTE'
             <a n:attr="href: (s:link to: 'snacks')">Snacks</a>
@@ -103,7 +102,7 @@ describe('inside n:attr', function () {
     });
 });
 
-describe('inside an interpolated attribute string', function () {
+describe('interpolation', function () {
     test('builds an href string by interpolating the tag result', function () {
         $this->latte(<<<'LATTE'
             <a href="{(s:link to: 'snacks')}">Snacks</a>
@@ -119,8 +118,8 @@ describe('inside an interpolated attribute string', function () {
     });
 });
 
-describe('survives inside the {s:tagName} block tag', function () {
-    test('n:if sub-expression inside a scalar {s:link} block', function () {
+describe('block tag', function () {
+    test('survives n:if inside a scalar {s:link} block', function () {
         $this->latte(<<<'LATTE'
             {s:link to: "snacks"}
                 <span n:if="(s:collection:count in: pages) > 1">{$value}</span>
@@ -129,7 +128,7 @@ describe('survives inside the {s:tagName} block tag', function () {
             ->assertSee('<span>/snacks</span>', false);
     });
 
-    test('n:foreach sub-expression inside an iterable {s:collection} block', function () {
+    test('survives n:foreach inside an iterable {s:collection} block', function () {
         $this->latte(<<<'LATTE'
             {s:collection from: pages, order: title}
                 <a n:attr="href: (s:link to: 'snacks')">{$value->title}</a>

@@ -1,24 +1,28 @@
 <?php
 
-describe('native var passthrough', function () {
-    test('plain scalar assignment still works', function () {
+use Latte\CompileException;
+use Latte\Engine;
+use Statamic\Tags\TagNotFoundException;
+
+describe('passthrough', function () {
+    test('assigns a plain scalar', function () {
         $this->latte('{var $count = 3}{$count}')->assertSee('3');
     });
 
-    test('string assignment still works', function () {
+    test('assigns a string', function () {
         $this->latte("{var \$name = 'Testable'}{\$name}")->assertSee('Testable');
     });
 
-    test('multiple assignments still work', function () {
+    test('assigns multiple variables', function () {
         $this->latte('{var $a = 1, $b = 2}{$a}-{$b}')->assertSee('1-2');
     });
 
-    test('native parenthesised expression still works', function () {
+    test('evaluates a native parenthesised expression', function () {
         $this->latte('{var $count = (1 + 2)}{$count}')->assertSee('3');
     });
 });
 
-describe('statamic tag subexpression', function () {
+describe('subexpression', function () {
     test('captures scalar tag output into a variable', function () {
         $this->latte('{var $count = (s:collection:count in: pages)}{$count} pages')
             ->assertSee('2 pages');
@@ -43,52 +47,52 @@ describe('statamic tag subexpression', function () {
     });
 });
 
-describe('used anywhere an expression is valid', function () {
-    test('inside a condition', function () {
+describe('expressions', function () {
+    test('works inside a condition', function () {
         $this->latte('{if (s:collection:count in: pages) > 1}many{else}few{/if}')
             ->assertSee('many');
     });
 
-    test('inside a ternary', function () {
+    test('works inside a ternary', function () {
         $this->latte('{(s:collection:count in: pages) > 1 ? "many" : "few"}')
             ->assertSee('many');
     });
 
-    test('directly in a foreach', function () {
+    test('works directly in a foreach', function () {
         $this->latte(<<<'LATTE'
             {foreach (s:collection from: pages, order: title) as $entry}{$entry->title}{sep}, {/sep}{/foreach}
         LATTE)
             ->assertSee('Testable, Testable With Layout');
     });
 
-    test('with a filter chained on the result', function () {
+    test('chains a filter on the result', function () {
         $this->latte('{(s:link to: "snacks")|upper}')
             ->assertSee('/SNACKS');
     });
 
-    test('coalesced with a fallback', function () {
+    test('coalesces with a fallback', function () {
         $this->latte('{(s:link to: "snacks") ?? "none"}')
             ->assertSee('/snacks');
     });
 });
 
-describe('filters inside params', function () {
-    test('parenthesised built-in filter is applied to a param value', function () {
+describe('param filters', function () {
+    test('applies a parenthesised built-in filter to a param value', function () {
         // "PAGES"|lower => "pages" => the pages collection has 2 entries.
         $this->latte('{var $c = "PAGES"}{(s:collection:count in: ($c|lower))} pages')
             ->assertSee('2 pages');
     });
 
-    test('parenthesised custom filter is applied to a param value', function () {
-        app(\Latte\Engine::class)->addFilter('strip_caps', fn ($v) => strtolower($v));
+    test('applies a parenthesised custom filter to a param value', function () {
+        app(Engine::class)->addFilter('strip_caps', fn ($v) => strtolower($v));
 
         $this->latte('{var $c = "PAGES"}{(s:collection:count in: ($c|strip_caps))} pages')
             ->assertSee('2 pages');
     });
 
-    test('bare filter throws at compile time', function () {
+    test('throws on a bare filter at compile time', function () {
         $this->latte('{(s:collection:count in: $c|lower)}');
-    })->throws(\Latte\CompileException::class, 'Bare filters are not supported');
+    })->throws(CompileException::class, 'Bare filters are not supported');
 });
 
 describe('guards', function () {
@@ -101,9 +105,9 @@ describe('guards', function () {
         $this->latte('{var $x = 1}{$x}')->assertSee('1');
     });
 
-    test('an unknown tag is resolved (and rejected) at runtime', function () {
+    test('resolves and rejects an unknown tag at runtime', function () {
         // Catch-all rewrite + live registry lookup: tags added/removed at
         // runtime are honoured; a genuinely missing tag throws clearly.
         $this->latte('{(s:thisisnotarealtag in: pages)}');
-    })->throws(\Statamic\Tags\TagNotFoundException::class);
+    })->throws(TagNotFoundException::class);
 });

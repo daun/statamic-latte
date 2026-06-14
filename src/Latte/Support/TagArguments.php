@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
+use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
 use Latte\CompileException;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\IdentifierNode;
@@ -16,9 +17,8 @@ use Latte\Compiler\TagParser;
  * Colons that sit *inside* a key are masked with a placeholder so Latte's
  * argument grammar accepts them, then restored on the parsed keys afterwards.
  *
- * Shared by {@see \Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode} (the
- * `{s:...}` tag) and {@see \Daun\StatamicLatte\Latte\Support\TagExpressionSyntax}
- * (the inline `(s:...)` expression form, e.g. `{var $x = (s:...)}`).
+ * Shared by the `{s:...}` tag and  the inline `(s:...)` expression form, e.g. `{var $x = (s:...)}`.
+ * {@see TagNode} {@see TagExpressionSyntax}
  */
 class TagArguments
 {

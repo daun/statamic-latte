@@ -2,7 +2,7 @@
 
 use Daun\StatamicLatte\Latte\Support\TagMethodSyntax;
 
-describe('TagMethodSyntax::rewrite', function () {
+describe('rewrite', function () {
     test('rewrites a self-closing method tag', function () {
         expect(TagMethodSyntax::rewrite('{s:collection:count in: pages /}'))
             ->toBe('{s:collection __sl_tag: "collection:count", in: pages /}');
