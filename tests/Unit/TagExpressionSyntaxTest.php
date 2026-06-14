@@ -36,6 +36,21 @@ describe('rewrite', function () {
         expect(rewriteExpr('{(s::FOO)}'))->toBe('{(s::FOO)}');
     });
 
+    test('treats the last colon of a bareword chain as the key/value separator', function (string $params, string $expected) {
+        expect(rewriteExpr("(s:tag {$params})"))->toBe("(s('tag', {$expected}))");
+    })->with([
+        'bareword value' => ['key:val', "['key' => 'val']"],
+        'spaced bareword value' => ['key: val', "['key' => 'val']"],
+        'quoted value' => ['key:"val"', "['key' => 'val']"],
+        'arrow value' => ['key => "val"', "['key' => 'val']"],
+        'nested bareword value' => ['key:sub:val', "['key:sub' => 'val']"],
+        'nested spaced bareword' => ['key:sub: val', "['key:sub' => 'val']"],
+        'nested quoted value' => ['key:sub:"val"', "['key:sub' => 'val']"],
+        'nested arrow value' => ['key:sub => "val"', "['key:sub' => 'val']"],
+        'variable value' => ['key:$val', "['key' => \$val]"],
+        'nested variable value' => ['key:sub:$val', "['key:sub' => \$val]"],
+    ]);
+
     test('handles nested parens inside params', function () {
         expect(rewriteExpr('{(s:link to: ("a"))}'))
             ->toBe("{(s('link', ['to' => 'a']))}");

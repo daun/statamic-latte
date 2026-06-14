@@ -74,10 +74,17 @@ class TagArguments
     }
 
     /**
-     * Replace colons that sit *inside* a key with a placeholder. A colon only
-     * continues the key when followed by a word character ([A-Za-z0-9_]);
-     * anything else (whitespace, $, a quote, etc.) ends the key name and marks
-     * the start of the value. Colons inside quoted strings are left untouched.
+     * Replace colons that sit *inside* a key with a placeholder, so Latte's
+     * argument grammar sees a plain key. Colons inside quoted strings are left
+     * untouched.
+     *
+     * A colon followed by a non-word character (whitespace, $, a quote, …) is
+     * always the key/value separator. A colon followed by a word character is
+     * masked only when the key continues past it — that is, when the bareword
+     * segment after it is itself followed by another colon (deeper nesting,
+     * `title:contains:Layout`) or by a `=>` arrow (which is the real separator,
+     * `key:sub => val`). Otherwise that colon separates the key from a bareword
+     * value, so `title:contains:Layout` parses like `title:contains: Layout`.
      */
     public static function escapeNestedKeys(string $text): string
     {
@@ -99,7 +106,7 @@ class TagArguments
 
             if ($char === '"' || $char === "'") {
                 $quote = $char;
-            } elseif ($char === ':' && isset($text[$i + 1]) && (ctype_alnum($text[$i + 1]) || $text[$i + 1] === '_')) {
+            } elseif ($char === ':' && self::colonContinuesKey($text, $i)) {
                 $out .= self::COLON_PLACEHOLDER;
 
                 continue;
@@ -109,5 +116,36 @@ class TagArguments
         }
 
         return $out;
+    }
+
+    /**
+     * Whether a colon at the given offset continues the key (mask it) rather
+     * than separating the key from its value (leave it). See escapeNestedKeys.
+     */
+    private static function colonContinuesKey(string $text, int $i): bool
+    {
+        $next = $text[$i + 1] ?? '';
+        if (! (ctype_alnum($next) || $next === '_')) {
+            return false;
+        }
+
+        $length = strlen($text);
+
+        // Skip the bareword segment that follows this colon.
+        $j = $i + 1;
+        while ($j < $length && (ctype_alnum($text[$j]) || $text[$j] === '_')) {
+            $j++;
+        }
+
+        // Skip any whitespace before the next significant character.
+        while ($j < $length && ctype_space($text[$j])) {
+            $j++;
+        }
+
+        $after = $text[$j] ?? '';
+
+        // Another colon means deeper key nesting; a `=` begins a `=>` arrow that
+        // is itself the separator. Either way this colon stays part of the key.
+        return $after === ':' || $after === '=';
     }
 }
