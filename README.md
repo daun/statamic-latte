@@ -48,7 +48,7 @@ control structures and smart attributes for expressive templating.
 
 ```latte
 <p n:ifcontent>
-    <span n:foreach="$entries as $entry" data-details={$entry->details}>
+    <span n:foreach={$entries as $entry} data-details={$entry->details}>
         {$entry->title}{sep}, {sep}
     </span>
 </p>
