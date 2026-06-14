@@ -72,6 +72,17 @@ describe('paginated tags', function () {
             ->assertDontSee('Testable With Layout')
             ->assertSee('Showing page 1 of 2, 2 total');
     });
+
+    test('captures a paginator from a tag subexpression into a variable', function () {
+        $this->latte(<<<'LATTE'
+            {var $entries = (s:collection from: pages, order: title, paginate: 1)}
+            {foreach $entries as $entry}|{$entry->title}|{/foreach}
+            Showing page {$entries->currentPage()} of {$entries->lastPage()}, {$entries->total()} total
+        LATTE)
+            ->assertSee('|Testable|')
+            ->assertDontSee('Testable With Layout')
+            ->assertSee('Showing page 1 of 2, 2 total');
+    });
 });
 
 describe('params', function () {
