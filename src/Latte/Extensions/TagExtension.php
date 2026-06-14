@@ -2,41 +2,41 @@
 
 namespace Daun\StatamicLatte\Latte\Extensions;
 
+use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
+use Daun\StatamicLatte\Latte\Support\Tags;
+use Illuminate\Support\Collection;
+use Latte\Engine;
 use Latte\Extension;
-use Statamic\Statamic;
 
 /**
- * Latte extension for using Antlers tags in Latte templates.
+ * Latte extension for using Statamic tags in Latte templates.
+ *
+ * Exposes every registered Statamic tag as a prefixed Latte tag
+ * (e.g. {s:collection}) and as the statamic()/s() functions.
  */
 class TagExtension extends Extension
 {
+    protected Collection $tags;
+
+    public function __construct(Engine $latte)
+    {
+        $this->tags = app('statamic.tags');
+    }
+
+    public function getTags(): array
+    {
+        return $this->tags
+            ->keys()
+            ->map(fn ($tag) => Tags::prefix($tag))
+            ->mapWithKeys(fn ($tag) => [$tag => [TagNode::class, 'create']])
+            ->all();
+    }
+
     public function getFunctions(): array
     {
         return [
-            'statamic' => [$this, 'statamic'],
-            's' => [$this, 'statamic'],
+            'statamic' => [Tags::class, 'fetch'],
+            's' => [Tags::class, 'fetch'],
         ];
-    }
-
-    /**
-     * Fetch the output of a Statamic tag.
-     *
-     * @param  string  $name  The tag name
-     * @param  mixed  ...$args  The tag parameters
-     * @return mixed The tag output
-     */
-    public function statamic(string $name, ...$args): mixed
-    {
-        $params = $args;
-
-        // Allow passing in params as a single array argument
-        foreach ($args as $key => $arg) {
-            if (is_int($key) && is_array($arg) && ! array_is_list($arg)) {
-                $params = array_merge($params, $arg);
-                unset($params[$key]);
-            }
-        }
-
-        return Statamic::tag($name)->params($params)->fetch();
     }
 }
