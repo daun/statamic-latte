@@ -17,16 +17,17 @@ use Latte\Essential\Nodes\ForeachNode;
 /**
  * {s:[tag]} ... {/s:[tag]}
  *
- * Renders a Statamic tag. The fetched output is exposed to the tag body
- * as $result. Behaviour depends on what the tag returns and its params:
+ * Renders a Statamic tag. Behaviour depends on what the tag returns and its
+ * params; the fetched value is held internally in $ʟ_result:
  *
  *  - `as: name`   stores the raw result in a body-scoped $name variable and
  *                 renders the body once (you iterate it yourself).
  *  - iterable     loops the body over the result via Latte's own foreach,
  *                 exposing each item as $entry (with $iterator, {sep},
  *                 {first} and {last} support).
- *  - scalar       renders the body once; an empty or self-closing body
- *                 falls back to echoing the fetched output.
+ *  - scalar       exposes the result to the body as $result and renders it
+ *                 once; an empty or self-closing body falls back to echoing
+ *                 the fetched output.
  *
  * Rendered body output is whitespace-squished, mirroring how templates are
  * normalised elsewhere, so loop separators produce clean output.
@@ -77,7 +78,7 @@ final class TagNode extends StatementNode
         [$args, $as] = $this->splitArguments();
 
         $fetch = $context->format(
-            '$result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line',
+            '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line',
             $name,
             $args,
             $this->position,
@@ -90,14 +91,15 @@ final class TagNode extends StatementNode
         return $fetch."\n".$context->format(
             <<<'XX'
                 ob_start();
-                $ʟ_iterable = is_iterable($result);
+                $ʟ_iterable = is_iterable($ʟ_result);
                 if ($ʟ_iterable) {
                     %raw
                 } else {
+                    $result = $ʟ_result;
                     %node
                 }
                 $ʟ_body = \Illuminate\Support\Str::squish(ob_get_clean());
-                echo $ʟ_body === '' && ! $ʟ_iterable ? $result : $ʟ_body;
+                echo $ʟ_body === '' && ! $ʟ_iterable ? $ʟ_result : $ʟ_body;
                 XX,
             $this->printForeach($context),
             $this->content,
@@ -111,7 +113,7 @@ final class TagNode extends StatementNode
     protected function printForeach(PrintContext $context): string
     {
         $foreach = new ForeachNode;
-        $foreach->expression = new VariableNode('result');
+        $foreach->expression = new VariableNode('ʟ_result');
         $foreach->value = new VariableNode('entry');
         $foreach->content = $this->content;
 
@@ -134,7 +136,7 @@ final class TagNode extends StatementNode
             ob_start();
             try {
                 $backup = get_defined_vars();
-                \$$as = \$result;
+                \$$as = \$ʟ_result;
                 $body
             } finally {
                 if (array_key_exists('$as', $backup)) { \$$as = {$backup}['$as']; } else { unset(\$$as); }
