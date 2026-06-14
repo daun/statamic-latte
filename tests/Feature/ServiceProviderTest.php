@@ -2,6 +2,7 @@
 
 use Daun\StatamicLatte\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Latte\Engine;
 
 test('adds addon view namespace', function () {
     $namespaces = View::getFinder()->getHints();
@@ -9,7 +10,7 @@ test('adds addon view namespace', function () {
 });
 
 test('installs default extensions', function () {
-    $engine = $this->app->get(\Latte\Engine::class);
+    $engine = $this->app->get(Engine::class);
     $extensions = collect($engine->getExtensions())->map(fn ($extension) => get_class($extension));
     expect($extensions)->toContain(...ServiceProvider::$defaultExtensions);
 });

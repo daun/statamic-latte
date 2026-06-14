@@ -1,5 +1,7 @@
 <?php
 
+use Latte\Engine;
+
 test('defines statamic modifiers', function () {
     $this->latte('I like {$things|sentence_list}', ['things' => ['a', 'b', 'c']])
         ->assertSee('I like a, b, and c');
@@ -12,7 +14,7 @@ test('defines statamic modifiers', function () {
 });
 
 test('does not overwrite existing filters', function () {
-    $latte = $this->app->get(\Latte\Engine::class);
+    $latte = $this->app->get(Engine::class);
     $latte->addFilter('dashify', fn ($str) => $str);
 
     $this->latte('{("Just Because I Can"|dashify)}')
