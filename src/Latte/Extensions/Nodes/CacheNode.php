@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions\Nodes;
+namespace Daun\StatamicLatte\Latte\Extensions\Nodes;
 
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
@@ -33,10 +33,11 @@ final class CacheNode extends StatementNode
         return $context->format(
             <<<'XX'
                 $ʟ_params = %node;
-                if (\Daun\StatamicLatte\Support\CacheNode::enabled($ʟ_params)) {
-                    $ʟ_store = \Daun\StatamicLatte\Support\CacheNode::store($ʟ_params);
-                    $ʟ_key = \Daun\StatamicLatte\Support\CacheNode::key($ʟ_params, %dump);
-                    $ʟ_expires = \Daun\StatamicLatte\Support\CacheNode::expires($ʟ_params);
+                $ʟ_cache = \Daun\StatamicLatte\Latte\Support\Cache::class;
+                if ($ʟ_cache::enabled($ʟ_params)) {
+                    $ʟ_store = $ʟ_cache::store($ʟ_params);
+                    $ʟ_key = $ʟ_cache::key($ʟ_params, %dump);
+                    $ʟ_expires = $ʟ_cache::expires($ʟ_params);
                     if ($ʟ_output = $ʟ_store->get($ʟ_key)) %line {
                         echo $ʟ_output;
                     } else {

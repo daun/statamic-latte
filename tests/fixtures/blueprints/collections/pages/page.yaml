@@ -35,3 +35,37 @@ tabs:
               max_items: 1
               listable: false
               localizable: true
+          -
+            handle: related_page
+            field:
+              type: entries
+              collections:
+                - pages
+              max_items: 1
+              listable: false
+              localizable: true
+          -
+            handle: meta
+            field:
+              type: group
+              fields:
+                -
+                  handle: author
+                  field:
+                    type: text
+                -
+                  handle: featured_page
+                  field:
+                    type: entries
+                    collections:
+                      - pages
+                    max_items: 1
+          -
+            handle: blocks
+            field:
+              type: grid
+              fields:
+                -
+                  handle: heading
+                  field:
+                    type: text

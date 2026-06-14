@@ -2,10 +2,11 @@
 
 namespace Tests;
 
-use Daun\LaravelLatte\ServiceProvider as LatteServiceProvider;
 use Daun\StatamicLatte\ServiceProvider as AddonServiceProvider;
+use Miko\LaravelLatte\ServiceProvider as LatteServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use Statamic\Extend\Manifest;
+use Statamic\Addons\Manifest;
+use Statamic\Facades\Blueprint;
 use Statamic\Providers\StatamicServiceProvider;
 use Statamic\Statamic;
 use Tests\Concerns\InteractsWithLatteViews;
@@ -58,6 +59,14 @@ abstract class TestCase extends OrchestraTestCase
 
         // Assume pro edition for our tests
         // $app['config']->set('statamic.editions.pro', true);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Use our fixture blueprints (so entries fields augment relations etc.)
+        Blueprint::setDirectory(fixtures_path('blueprints'));
     }
 
     protected function getEnvironmentSetUp($app): void

@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions;
+namespace Daun\StatamicLatte\Latte\Extensions;
 
 use Latte\Extension;
 use Latte\Runtime\Template;
@@ -10,8 +10,6 @@ use Latte\Runtime\Template;
  */
 class LayoutExtension extends Extension
 {
-    protected string $defaultLayout = 'layout';
-
     public function getProviders(): array
     {
         return [
@@ -29,7 +27,6 @@ class LayoutExtension extends Extension
      */
     protected function resolveLayout(Template $template): ?string
     {
-        $globalDefaultLayout = $template->global->defaultLayout ?? null;
         $params = $template->getParameters();
 
         // Abort if this was included as a temporary view from the {nocache} tag
@@ -38,11 +35,6 @@ class LayoutExtension extends Extension
         }
 
         // Find Latte layout parent from Statamic's layout param
-        $layout = $params['current_layout'] ?? null;
-        if ((! $layout || $layout === $this->defaultLayout) && $globalDefaultLayout) {
-            $layout = $globalDefaultLayout($template);
-        }
-
-        return $layout;
+        return $params['current_layout'] ?? null;
     }
 }

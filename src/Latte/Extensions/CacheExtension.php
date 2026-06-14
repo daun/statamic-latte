@@ -1,9 +1,9 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions;
+namespace Daun\StatamicLatte\Latte\Extensions;
 
-use Daun\StatamicLatte\Extensions\Nodes\CacheNode;
-use Daun\StatamicLatte\Extensions\Nodes\NocacheNode;
+use Daun\StatamicLatte\Latte\Extensions\Nodes\CacheNode;
+use Daun\StatamicLatte\Latte\Extensions\Nodes\NocacheNode;
 use Latte\Extension;
 
 /**

@@ -1,14 +1,14 @@
 <?php
 
-namespace Daun\StatamicLatte\Support;
+namespace Daun\StatamicLatte\Latte\Support;
 
 use Carbon\Carbon;
-use Illuminate\Cache\Repository;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Support\Facades\Cache as IlluminateCache;
 use Statamic\Facades\Site;
 use Statamic\Facades\URL;
 
-class CacheNode
+class Cache
 {
     public static function enabled(?array $params = []): bool
     {
@@ -25,7 +25,7 @@ class CacheNode
         $main = $params[0] ?? null;
         $tags = $params['tags'] ?? (is_array($main) ? $main : null);
 
-        $store = Cache::store();
+        $store = IlluminateCache::store();
         if (is_array($tags) && count($tags)) {
             $store = $store->tags($tags);
         }
@@ -47,23 +47,23 @@ class CacheNode
         $main = $params[0] ?? null;
         $key = $params['key'] ?? (is_string($main) ? $main : null) ?? $contents;
         $auth = auth(config('statamic.users.guards.cp', 'web'));
+
+        // Only the dimensions listed in scope vary the key (default: site + auth).
         $scope = $params['scope'] ?? ['site', 'auth'];
-        $site = Site::current()->handle();
+        $scope = is_array($scope) ? $scope : explode('|', (string) $scope);
 
         $parts = [
             'key' => $key,
             'params' => $params,
-            'auth' => $auth->check(),
-            'site' => $site,
-            'scope' => collect($scope)->flip()->map(fn ($_, $s) => match ($s) {
+            'scope' => collect($scope)->mapWithKeys(fn ($s) => [$s => match ($s) {
+                'site' => Site::current()->handle(),
+                'auth' => $auth->check(),
+                'user' => $auth->check() ? $auth->user()->id : 'guest',
                 'page' => URL::makeAbsolute(URL::getCurrent()),
-                'user' => $auth->user()?->id ?? 'guest',
                 default => null,
-            })->all(),
+            }])->all(),
         ];
 
-        $hash = md5(json_encode($parts));
-
-        return "latte.statamic.cache.{$hash}";
+        return 'latte.statamic.cache.'.md5(serialize($parts));
     }
 }

@@ -5,4 +5,13 @@ parameters:
     paths:
         - src/
     level: 5
-    checkGenericClassInNonGenericObjectType: false
+    ignoreErrors:
+        # Version-compat branch for Latte < 30014 (dead on the installed
+        # version, but kept for older Latte releases that expose the lexer
+        # delimiters publicly).
+        -
+            identifier: smaller.alwaysFalse
+            path: src/Latte/Extensions/Nodes/Concerns/ExtractsToTemporaryView.php
+        -
+            identifier: property.private
+            path: src/Latte/Extensions/Nodes/Concerns/ExtractsToTemporaryView.php

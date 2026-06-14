@@ -12,25 +12,17 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3, 8.4]
-        laravel: [9.*, 10.*, 11.*, 12.*]
-        statamic: [4.*, 5.*]
+        php: [8.3, 8.4, 8.5]
+        laravel: [12.*, 13.*]
+        statamic: [6.*]
         include:
-          - laravel: 9.*
-            testbench: 7.*
-            pest: 1.*
-            snapshots: 1.*
-          - laravel: 10.*
-            testbench: 8.*
-            pest: 2.*
-            snapshots: 2.*
-          - laravel: 11.*
-            testbench: 9.*
-            pest: 3.*
-            snapshots: 2.*
           - laravel: 12.*
             testbench: 10.*
             pest: 3.*
+            snapshots: 2.*
+          - laravel: 13.*
+            testbench: 11.*
+            pest: 4.*
             snapshots: 2.*
             coverage: true
             lint: true
@@ -64,6 +56,7 @@ jobs:
           composer update --prefer-dist --no-interaction --no-progress
 
       - name: Check code style
+        if: ${{ matrix.lint }}
         run: composer run lint
 
       - name: Execute tests
@@ -71,7 +64,7 @@ jobs:
 
       - name: Check code coverage
         uses: codecov/codecov-action@v4
-        if: ${{ matrix.php == '8.3' && matrix.laravel == '12.*' }}
+        if: ${{ matrix.coverage }}
         with:
           file: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}

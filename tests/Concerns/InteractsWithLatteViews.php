@@ -4,6 +4,7 @@ namespace Tests\Concerns;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\View as ViewFacade;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestView;
 
 trait InteractsWithLatteViews
@@ -11,7 +12,7 @@ trait InteractsWithLatteViews
     /**
      * Render the contents of the given Latte template string.
      */
-    protected function latte(string $template, Arrayable|array $data = []): TestView
+    protected function latte(string $template, Arrayable|array $data = [], bool $squish = true): TestView
     {
         $tempDirectory = sys_get_temp_dir();
 
@@ -20,8 +21,11 @@ trait InteractsWithLatteViews
         }
 
         $tempFileInfo = pathinfo(tempnam($tempDirectory, 'statamic-latte-'));
-
         $tempFile = $tempFileInfo['dirname'].'/'.$tempFileInfo['filename'].'.latte';
+
+        if ($squish) {
+            $template = Str::squish($template);
+        }
 
         file_put_contents($tempFile, $template);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Daun\StatamicLatte\Extensions\Nodes\Concerns;
+namespace Daun\StatamicLatte\Latte\Extensions\Nodes\Concerns;
 
 use Daun\StatamicLatte\ServiceProvider;
 use Latte\Compiler\NodeHelpers;
@@ -14,6 +14,8 @@ use WeakMap;
 trait ExtractsToTemporaryView
 {
     public AreaNode $content;
+
+    protected string $viewFileExtension = 'latte';
 
     public static ?WeakMap $lexerDelimiters;
 
@@ -51,7 +53,7 @@ trait ExtractsToTemporaryView
     protected function saveContentToView(?string $extension = null): string
     {
         $content = NodeHelpers::toText($this->content);
-        $extension = $extension ?? $this->viewFileExtension ?? 'latte';
+        $extension = $extension ?? $this->viewFileExtension;
 
         $ns = ServiceProvider::$temporaryViewNamespace;
         $hash = sha1($content);
