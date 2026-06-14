@@ -85,6 +85,29 @@ describe('paginated tags', function () {
     });
 });
 
+describe('content param', function () {
+    test('passes a captured block to a content-consuming tag', function () {
+        $this->latte(<<<'LATTE'
+            {capture $text}Hello world{/capture}
+            {s:widont content: $text/}
+        LATTE)
+            ->assertSee('Hello&nbsp;world', false);
+    });
+
+    test('passes a string literal as the tag body', function () {
+        $this->latte('{s:widont content: "Hello world"/}')
+            ->assertSee('Hello&nbsp;world', false);
+    });
+
+    test('passes an expression as the tag body', function () {
+        $this->latte(<<<'LATTE'
+            {var $a = 'Hello'}
+            {s:widont content: $a . ' world'/}
+        LATTE)
+            ->assertSee('Hello&nbsp;world', false);
+    });
+});
+
 describe('params', function () {
     test('accepts nested params', function () {
         $this->latte(<<<'LATTE'

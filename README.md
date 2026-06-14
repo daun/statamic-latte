@@ -74,6 +74,26 @@ as long as you're making sure there's only ever one identically named view.
 {/foreach}
 ```
 
+Some tags transform their tag-pair body instead of returning data (e.g. `widont`,
+`obfuscate`, or addon tags like `mjml`). Render a block with Latte's `{capture}` and hand it
+to the tag via the `content:` argument:
+
+**Antlers**
+
+```antlers
+{{ widont }}{{ headline }}{{ /widont }}
+```
+
+**Latte**
+
+```latte
+{capture $headline}{$entry->headline}{/capture}
+{s:widont content: $headline/}
+```
+
+`content:` accepts any expression (a captured variable, a string literal, etc.) and is reserved
+for this purpose, so it is not forwarded to the tag as a regular parameter.
+
 ### Modifiers
 
 [Statamic Modifiers](https://statamic.dev/modifiers) can also be used as filters in Latte:

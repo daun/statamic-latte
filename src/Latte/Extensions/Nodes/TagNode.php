@@ -9,6 +9,7 @@ use Latte\CompileException;
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\Expression\VariableNode;
+use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\IdentifierNode;
 use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
@@ -99,15 +100,26 @@ final class TagNode extends StatementNode
 
     public function print(PrintContext $context): string
     {
-        [$args, $as, $originalTag] = $this->splitArguments();
+        [$args, $as, $originalTag, $content] = $this->splitArguments();
         $name = $originalTag ?? Tags::unprefix($this->name);
 
-        $fetch = $context->format(
-            '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line',
-            $name,
-            $args,
-            $this->position,
-        );
+        // A `content:` argument supplies the tag-pair body as an already-rendered
+        // string (e.g. `{s:widont content: $text/}`), routed through
+        // fetchWithContent() so content-consuming tags receive it as `$this->content`.
+        $fetch = $content !== null
+            ? $context->format(
+                '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetchWithContent(%dump, (string) (%node), %node); %line',
+                $name,
+                $content,
+                $args,
+                $this->position,
+            )
+            : $context->format(
+                '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line',
+                $name,
+                $args,
+                $this->position,
+            );
 
         if ($as !== null) {
             return $fetch."\n".$this->printAliased($context, $as);
@@ -176,13 +188,14 @@ final class TagNode extends StatementNode
      * Split the parsed arguments, pulling out the `as` alias (which is
      * consumed here rather than forwarded to the Statamic tag).
      *
-     * @return array{ArrayNode, ?string, ?string}
+     * @return array{ArrayNode, ?string, ?string, ?ExpressionNode}
      */
     protected function splitArguments(): array
     {
         $items = [];
         $as = null;
         $originalTag = null;
+        $content = null;
 
         foreach ($this->args->items as $item) {
             if ($item->key instanceof IdentifierNode
@@ -207,10 +220,19 @@ final class TagNode extends StatementNode
                 continue;
             }
 
+            if ($content === null
+                && $item->key instanceof IdentifierNode
+                && $item->key->name === 'content'
+            ) {
+                $content = $item->value;
+
+                continue;
+            }
+
             $items[] = $item;
         }
 
-        return [new ArrayNode($items), $as, $originalTag];
+        return [new ArrayNode($items), $as, $originalTag, $content];
     }
 
     public function &getIterator(): \Generator
