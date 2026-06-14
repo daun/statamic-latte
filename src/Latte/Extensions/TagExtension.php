@@ -3,6 +3,7 @@
 namespace Daun\StatamicLatte\Latte\Extensions;
 
 use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
+use Daun\StatamicLatte\Latte\Extensions\Nodes\VarNode;
 use Daun\StatamicLatte\Latte\Support\Tags;
 use Illuminate\Support\Collection;
 use Latte\Engine;
@@ -25,11 +26,17 @@ class TagExtension extends Extension
 
     public function getTags(): array
     {
-        return $this->tags
-            ->keys()
-            ->map(fn ($tag) => Tags::prefix($tag))
-            ->mapWithKeys(fn ($tag) => [$tag => [TagNode::class, 'create']])
-            ->all();
+        return [
+            // Override Latte's built-in {var} so the value may be a Statamic
+            // tag call: {var $count = (s:collection:count in: pages)}. Any
+            // other assignment falls through to the native handler.
+            'var' => [VarNode::class, 'create'],
+            ...$this->tags
+                ->keys()
+                ->map(fn ($tag) => Tags::prefix($tag))
+                ->mapWithKeys(fn ($tag) => [$tag => [TagNode::class, 'create']])
+                ->all(),
+        ];
     }
 
     public function getFunctions(): array

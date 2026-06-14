@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Extensions\Nodes;
 
+use Daun\StatamicLatte\Latte\Support\TagArguments;
 use Daun\StatamicLatte\Latte\Support\TagMethodSyntax;
 use Daun\StatamicLatte\Latte\Support\Tags;
 use Latte\CompileException;
@@ -13,8 +14,6 @@ use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
-use Latte\Compiler\TagLexer;
-use Latte\Compiler\TagParser;
 use Latte\Essential\Nodes\ForeachNode;
 
 /**
@@ -40,9 +39,6 @@ use Latte\Essential\Nodes\ForeachNode;
  */
 final class TagNode extends StatementNode
 {
-    /** Placeholder standing in for colons inside a parameter key while Latte parses it. */
-    private const COLON_PLACEHOLDER = '__sl_colon__';
-
     /** Internal argument inserted by the loader to preserve Statamic tag method names. */
     private const ORIGINAL_TAG_ARGUMENT = TagMethodSyntax::TAG_ARGUMENT;
 
@@ -91,19 +87,7 @@ final class TagNode extends StatementNode
      */
     protected static function parseArguments(Tag $tag): ArrayNode
     {
-        $text = self::escapeNestedKeys($tag->parser->text);
-        $args = (new TagParser((new TagLexer)->tokenize($text)))->parseArguments();
-
-        // Restore the masked colons. A key written with Latte's colon syntax
-        // (`key: value`) parses to an IdentifierNode, while the array fat-arrow
-        // syntax (`key => value`) parses to a StringNode — handle both.
-        foreach ($args->items as $item) {
-            if ($item->key instanceof IdentifierNode) {
-                $item->key = new IdentifierNode(self::restoreColons($item->key->name), $item->key->position);
-            } elseif ($item->key instanceof StringNode) {
-                $item->key = new StringNode(self::restoreColons($item->key->value), $item->key->position);
-            }
-        }
+        $args = TagArguments::parseParams($tag->parser->text);
 
         // Drain the original stream so Latte sees the arguments as consumed.
         while (! $tag->parser->isEnd()) {
@@ -111,49 +95,6 @@ final class TagNode extends StatementNode
         }
 
         return $args;
-    }
-
-    protected static function restoreColons(string $key): string
-    {
-        return str_replace(self::COLON_PLACEHOLDER, ':', $key);
-    }
-
-    /**
-     * Replace colons that sit *inside* a key with a placeholder. A colon only
-     * continues the key when followed by a word character ([A-Za-z0-9_]);
-     * anything else (whitespace, $, a quote, etc.) ends the key name and marks
-     * the start of the value. Colons inside quoted strings are left untouched.
-     */
-    protected static function escapeNestedKeys(string $text): string
-    {
-        $out = '';
-        $quote = null;
-        $length = strlen($text);
-
-        for ($i = 0; $i < $length; $i++) {
-            $char = $text[$i];
-
-            if ($quote !== null) {
-                $out .= $char;
-                if ($char === $quote && $text[$i - 1] !== '\\') {
-                    $quote = null;
-                }
-
-                continue;
-            }
-
-            if ($char === '"' || $char === "'") {
-                $quote = $char;
-            } elseif ($char === ':' && isset($text[$i + 1]) && (ctype_alnum($text[$i + 1]) || $text[$i + 1] === '_')) {
-                $out .= self::COLON_PLACEHOLDER;
-
-                continue;
-            }
-
-            $out .= $char;
-        }
-
-        return $out;
     }
 
     public function print(PrintContext $context): string
