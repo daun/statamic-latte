@@ -48,7 +48,7 @@ class BladeStyleLoader implements Loader
     {
         try {
             return $this->filesystem()->lastModified($path) > $time;
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             return true;
         }
     }
