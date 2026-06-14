@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.0] - 2024-03-09
+
+- Add support for Statamic 6
+- Drop support for Statamic 5 and below
+- Render Statamic {tags} from Latte {nodes} and (subexpressions)
+- Normalize augmented values to iterables or objects
+- Pass along paginator instances from tags and loops
+- Render section and yield tags
+
 ## [1.3.0] - 2025-03-06
 
 - Add support for Laravel 12
@@ -28,6 +37,7 @@
 
 - Initial release
 
+[2.0.0]: https://github.com/daun/statamic-latte/releases/tag/2.0.0
 [1.3.0]: https://github.com/daun/statamic-latte/releases/tag/1.3.0
 [1.2.1]: https://github.com/daun/statamic-latte/releases/tag/1.2.1
 [1.2.0]: https://github.com/daun/statamic-latte/releases/tag/1.2.0
