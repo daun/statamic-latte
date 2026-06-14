@@ -41,6 +41,27 @@ describe('iterable tags', function () {
     });
 });
 
+describe('paginated tags', function () {
+    test('iterates a paginated result as a laravel paginator', function () {
+        $this->latte(<<<'LATTE'
+            {s:collection from: pages, order: title, paginate: 1}
+                |{$value->title}|
+            {/s:collection}
+        LATTE)
+            ->assertSee('|Testable|')
+            ->assertDontSee('Testable With Layout');
+    });
+
+    test('exposes the paginator api via the `as` param', function () {
+        $this->latte(<<<'LATTE'
+            {s:collection as: paginator, from: pages, order: title, paginate: 1}
+                total:{$paginator->total()} pages:{$paginator->lastPage()} page:{$paginator->currentPage()} count:{$paginator->count()}
+            {/s:collection}
+        LATTE)
+            ->assertSee('total:2 pages:2 page:1 count:1');
+    });
+});
+
 describe('params', function () {
     test('accepts nested params', function () {
         $this->latte(<<<'LATTE'
