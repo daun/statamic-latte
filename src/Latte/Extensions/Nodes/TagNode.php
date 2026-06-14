@@ -23,9 +23,9 @@ use Latte\Essential\Nodes\ForeachNode;
  *  - `as: name`   stores the raw result in a body-scoped $name variable and
  *                 renders the body once (you iterate it yourself).
  *  - iterable     loops the body over the result via Latte's own foreach,
- *                 exposing each item as $entry (with $iterator, {sep},
+ *                 exposing each item as $value (with $iterator, {sep},
  *                 {first} and {last} support).
- *  - scalar       exposes the result to the body as $result and renders it
+ *  - scalar       exposes the result to the body as $value and renders it
  *                 once; an empty or self-closing body falls back to echoing
  *                 the fetched output.
  *
@@ -95,7 +95,7 @@ final class TagNode extends StatementNode
                 if ($ʟ_iterable) {
                     %raw
                 } else {
-                    $result = $ʟ_result;
+                    $value = $ʟ_result;
                     %node
                 }
                 $ʟ_body = \Illuminate\Support\Str::squish(ob_get_clean());
@@ -114,7 +114,7 @@ final class TagNode extends StatementNode
     {
         $foreach = new ForeachNode;
         $foreach->expression = new VariableNode('ʟ_result');
-        $foreach->value = new VariableNode('entry');
+        $foreach->value = new VariableNode('value');
         $foreach->content = $this->content;
 
         return $foreach->print($context);
