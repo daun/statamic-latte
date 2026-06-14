@@ -35,3 +35,7 @@ composer test                                             # Run all tests
 - `nocache` tag works only with app-level static caching, not file-based
 - Nested cache/nocache not supported
 - PHPStan runs at level 5 with no generic type checking (performance)
+
+## Rules
+
+- Prefix all local variables in processed PHP with `$ʟ_` as Latte itself does

@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Extensions;
 
+use Daun\StatamicLatte\Data\Normalizer;
 use Illuminate\Support\Collection;
 use Latte\Engine;
 use Latte\Essential\CoreExtension;
@@ -39,13 +40,18 @@ class ModifierExtension extends Extension
 
     protected function getDefinedFilters(): array
     {
-        // make sure existing filters are not overwritten
-        // to only freeze Latte core filters and overwrite user filters, use $this->core->getFilters()
+        // Make sure existing filters are not overwritten
+        // (to only freeze Latte core filters and overwrite user filters, use $this->core->getFilters())
         return array_keys($this->latte->getFilters());
     }
 
     protected function applyModifier(string $name, $value, ...$args): mixed
     {
+        // Peel Content wrappers back to raw Statamic data before handing off
+        // to modifiers, which expect plain values/arrays/augmentables.
+        $value = Normalizer::unwrap($value);
+        $args = array_map([Normalizer::class, 'unwrap'], $args);
+
         return ($this->loader->load($name))($value, $args, []);
     }
 }

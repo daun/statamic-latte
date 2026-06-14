@@ -6,7 +6,9 @@ beforeEach(function () {
     $this->get('/');
 });
 
-test('wraps contents of nocache tag', function () {
-    $this->latte('A {nocache}B{/nocache}')
-        ->assertSee('A <span class="nocache"', false);
+describe('nocache', function () {
+    test('wraps contents of a nocache tag', function () {
+        $this->latte('A {nocache}B{/nocache}')
+            ->assertSee('A <span class="nocache"', false);
+    });
 });
