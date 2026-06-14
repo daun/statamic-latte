@@ -87,7 +87,7 @@ as `$value`. Access fields explicitly with `$value->title` over a bare `{title}`
 Assign tag output using parentheses:
 
 ```latte
-{var $entries = (s:collection from: pages, order: title)}
+{var $entries = (s:collection from: pages, sort: title)}
 {foreach $entries as $entry}{$entry->title}{/foreach}
 ```
 
@@ -134,7 +134,7 @@ Wrap a tag in parentheses to use it inline as a plain expression — in `{var}`,
 filters, `foreach`, and Latte's `n:` attributes:
 
 ```latte
-{var $entries = (s:collection from: pages, order: title)}
+{var $entries = (s:collection from: pages, sort: title)}
 {if (s:collection:count in: pages) > 1}many{/if}
 {(s:link to: "snacks")|upper}
 
