@@ -12,6 +12,8 @@ use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
+use Latte\Compiler\TagLexer;
+use Latte\Compiler\TagParser;
 use Latte\Essential\Nodes\ForeachNode;
 
 /**
@@ -31,9 +33,15 @@ use Latte\Essential\Nodes\ForeachNode;
  *
  * Rendered body output is whitespace-squished, mirroring how templates are
  * normalised elsewhere, so loop separators produce clean output.
+ *
+ * Parameters accept Statamic-style nested keys (e.g. `title:contains: foo`),
+ * which Latte's own argument grammar would otherwise reject.
  */
 final class TagNode extends StatementNode
 {
+    /** Placeholder standing in for colons inside a parameter key while Latte parses it. */
+    private const COLON_PLACEHOLDER = '__sl_colon__';
+
     public string $name;
 
     public ArrayNode $args;
@@ -63,13 +71,76 @@ final class TagNode extends StatementNode
 
         $node = $tag->node = new self;
         $node->name = $tag->name;
-        $node->args = $tag->parser->parseArguments();
+        $node->args = self::parseArguments($tag);
 
         [$node->content, $endTag] = yield;
 
         $node->selfClosing = ! $endTag || $endTag === $tag;
 
         return $node;
+    }
+
+    /**
+     * Parse the tag arguments, allowing Statamic-style nested keys such as
+     * `title:contains: foo`. Colons inside a key are masked with a placeholder
+     * so Latte's argument grammar accepts them, then restored afterwards.
+     */
+    protected static function parseArguments(Tag $tag): ArrayNode
+    {
+        $text = self::escapeNestedKeys($tag->parser->text);
+        $args = (new TagParser((new TagLexer)->tokenize($text)))->parseArguments();
+
+        foreach ($args->items as $item) {
+            if ($item->key instanceof IdentifierNode && str_contains($item->key->name, self::COLON_PLACEHOLDER)) {
+                $item->key = new IdentifierNode(
+                    str_replace(self::COLON_PLACEHOLDER, ':', $item->key->name),
+                    $item->key->position,
+                );
+            }
+        }
+
+        // Drain the original stream so Latte sees the arguments as consumed.
+        while (! $tag->parser->isEnd()) {
+            $tag->parser->stream->consume();
+        }
+
+        return $args;
+    }
+
+    /**
+     * Replace colons that sit *inside* a key (i.e. not followed by whitespace,
+     * and outside any quoted string) with a placeholder.
+     */
+    protected static function escapeNestedKeys(string $text): string
+    {
+        $out = '';
+        $quote = null;
+        $length = strlen($text);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $text[$i];
+
+            if ($quote !== null) {
+                $out .= $char;
+                if ($char === $quote && $text[$i - 1] !== '\\') {
+                    $quote = null;
+                }
+
+                continue;
+            }
+
+            if ($char === '"' || $char === "'") {
+                $quote = $char;
+            } elseif ($char === ':' && isset($text[$i + 1]) && ! ctype_space($text[$i + 1]) && $text[$i + 1] !== ':') {
+                $out .= self::COLON_PLACEHOLDER;
+
+                continue;
+            }
+
+            $out .= $char;
+        }
+
+        return $out;
     }
 
     public function print(PrintContext $context): string

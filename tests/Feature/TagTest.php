@@ -40,3 +40,15 @@ describe('iterable tags', function () {
             ->assertSee('Testable, Testable With Layout');
     });
 });
+
+describe('params', function () {
+    test('accepts nested params', function () {
+        $this->latte(<<<'LATTE'
+            {s:collection from: pages, title:contains: Layout}
+                {$value->title}{sep}, {/sep}
+            {/s:collection}
+        LATTE)
+            ->assertDontSee('Testable,')
+            ->assertSee('Testable With Layout');
+    });
+});
