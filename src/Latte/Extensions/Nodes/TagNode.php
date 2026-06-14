@@ -14,7 +14,8 @@ use Latte\Compiler\Tag;
  * {s:[tag]} ... {/s:[tag]}
  *
  * Renders a Statamic tag. The fetched output is exposed to the tag body
- * as $result; a self-closing or empty tag therefore renders nothing.
+ * as $result. A body may use $result to render custom markup; an empty
+ * or self-closing tag falls back to echoing the fetched output directly.
  */
 final class TagNode extends StatementNode
 {
@@ -63,7 +64,10 @@ final class TagNode extends StatementNode
         return $context->format(
             <<<'XX'
                 $result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line
+                ob_start();
                 %node
+                $ʟ_body = ob_get_clean();
+                echo $ʟ_body === '' ? $result : $ʟ_body;
                 XX,
             $name,
             $this->args,
