@@ -108,8 +108,10 @@ final class TagNode extends StatementNode
     }
 
     /**
-     * Replace colons that sit *inside* a key (i.e. not followed by whitespace,
-     * and outside any quoted string) with a placeholder.
+     * Replace colons that sit *inside* a key with a placeholder. A colon only
+     * continues the key when followed by a word character ([A-Za-z0-9_]);
+     * anything else (whitespace, $, a quote, etc.) ends the key name and marks
+     * the start of the value. Colons inside quoted strings are left untouched.
      */
     protected static function escapeNestedKeys(string $text): string
     {
@@ -131,7 +133,7 @@ final class TagNode extends StatementNode
 
             if ($char === '"' || $char === "'") {
                 $quote = $char;
-            } elseif ($char === ':' && isset($text[$i + 1]) && ! ctype_space($text[$i + 1]) && $text[$i + 1] !== ':') {
+            } elseif ($char === ':' && isset($text[$i + 1]) && (ctype_alnum($text[$i + 1]) || $text[$i + 1] === '_')) {
                 $out .= self::COLON_PLACEHOLDER;
 
                 continue;
