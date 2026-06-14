@@ -96,3 +96,21 @@ describe('params', function () {
             ->assertSee('Testable With Layout');
     });
 });
+
+describe('tag methods', function () {
+    test('accepts tag methods', function () {
+        $this->latte('{s:collection:count in: pages /} pages')
+            ->assertSee('2 pages');
+
+        $this->latte('{s:collection:count in: pages}{$value}{/s:collection:count} pages')
+            ->assertSee('2 pages');
+
+        $this->latte('{s:collection:count in: pages, as: count}{$count}{/s:collection:count} pages')
+            ->assertSee('2 pages');
+    });
+
+    test('accepts wildcard tag methods', function () {
+        $this->latte('{s:collection:pages order: title}{$value->title}{sep}, {/sep}{/s:collection:pages}')
+            ->assertSee('Testable, Testable With Layout');
+    });
+});

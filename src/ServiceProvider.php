@@ -4,6 +4,7 @@ namespace Daun\StatamicLatte;
 
 use Daun\StatamicLatte\Latte\BladeStyleLoader;
 use Daun\StatamicLatte\Latte\Extensions;
+use Daun\StatamicLatte\Latte\Loaders\TagMethodLoader;
 use Illuminate\Support\Facades\View;
 use Latte\Engine;
 use Statamic\Providers\AddonServiceProvider;
@@ -31,7 +32,7 @@ class ServiceProvider extends AddonServiceProvider
     {
         $view = $this->app->get('view');
         $engine = $this->app->get(Engine::class);
-        $loader = new BladeStyleLoader($view);
+        $loader = new TagMethodLoader(new BladeStyleLoader($view));
         $engine->setLoader($loader);
     }
 

@@ -2,6 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Extensions\Nodes;
 
+use Daun\StatamicLatte\Latte\Support\TagMethodSyntax;
 use Daun\StatamicLatte\Latte\Support\Tags;
 use Latte\CompileException;
 use Latte\Compiler\Nodes\AreaNode;
@@ -41,6 +42,9 @@ final class TagNode extends StatementNode
 {
     /** Placeholder standing in for colons inside a parameter key while Latte parses it. */
     private const COLON_PLACEHOLDER = '__sl_colon__';
+
+    /** Internal argument inserted by the loader to preserve Statamic tag method names. */
+    private const ORIGINAL_TAG_ARGUMENT = TagMethodSyntax::TAG_ARGUMENT;
 
     public string $name;
 
@@ -154,8 +158,8 @@ final class TagNode extends StatementNode
 
     public function print(PrintContext $context): string
     {
-        $name = Tags::unprefix($this->name);
-        [$args, $as] = $this->splitArguments();
+        [$args, $as, $originalTag] = $this->splitArguments();
+        $name = $originalTag ?? Tags::unprefix($this->name);
 
         $fetch = $context->format(
             '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetch(%dump, %node); %line',
@@ -231,14 +235,27 @@ final class TagNode extends StatementNode
      * Split the parsed arguments, pulling out the `as` alias (which is
      * consumed here rather than forwarded to the Statamic tag).
      *
-     * @return array{ArrayNode, ?string}
+     * @return array{ArrayNode, ?string, ?string}
      */
     protected function splitArguments(): array
     {
         $items = [];
         $as = null;
+        $originalTag = null;
 
         foreach ($this->args->items as $item) {
+            if ($item->key instanceof IdentifierNode
+                && $item->key->name === self::ORIGINAL_TAG_ARGUMENT
+            ) {
+                if (! $item->value instanceof StringNode) {
+                    throw new CompileException('Invalid internal Statamic tag argument.');
+                }
+
+                $originalTag = $item->value->value;
+
+                continue;
+            }
+
             if ($as === null
                 && $item->key instanceof IdentifierNode
                 && $item->key->name === 'as'
@@ -252,7 +269,7 @@ final class TagNode extends StatementNode
             $items[] = $item;
         }
 
-        return [new ArrayNode($items), $as];
+        return [new ArrayNode($items), $as, $originalTag];
     }
 
     public function &getIterator(): \Generator
