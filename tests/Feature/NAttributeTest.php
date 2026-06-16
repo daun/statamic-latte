@@ -100,6 +100,17 @@ describe('n:attr', function () {
             ->assertSee('href="/snacks"', false)
             ->assertSee('class="btn"', false);
     });
+    test('spreads an associative array passed as a Content object', function () {
+        $this->latte('<div n:attr="$attrs">x</div>', [
+            'attrs' => ['class' => 'big', 'data-id' => 7, 'hidden' => true, 'title' => null],
+        ])
+            ->assertSee('<div class="big" data-id="7" hidden>x</div>', false);
+    });
+
+    test('still renders a keyed n:attr after the unwrap pass', function () {
+        $this->latte('<a n:attr="href: $url, class: \'btn\'">x</a>', ['url' => '/go'])
+            ->assertSee('<a href="/go" class="btn">x</a>', false);
+    });
 });
 
 describe('interpolation', function () {
