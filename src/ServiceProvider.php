@@ -14,6 +14,7 @@ class ServiceProvider extends AddonServiceProvider
 {
     public static $defaultExtensions = [
         Extensions\AntlersExtension::class,
+        Extensions\AttributeNormalizationExtension::class,
         Extensions\CacheExtension::class,
         Extensions\ComponentExtension::class,
         Extensions\LayoutExtension::class,
