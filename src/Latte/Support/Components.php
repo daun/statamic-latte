@@ -52,14 +52,18 @@ class Components
      */
     public static function render(string $name, array $params = [], ?string $slot = null): string
     {
-        if (static::isLatteComponent($name)) {
+        $class = static::composeClass($name);
+
+        if (static::isLatteComponent($class)) {
             if ($slot !== null) {
                 throw new RuntimeException(
                     "The Latte component <x-{$name}> does not support a slot/body yet."
                 );
             }
 
-            $result = Component::generate($name, $params);
+            // Pass the fully-qualified class name: it contains a backslash, so
+            // Component::generate() skips its own (case-lossy) composeName().
+            $result = Component::generate($class, $params);
 
             return $result instanceof View ? $result->render() : (string) $result;
         }
@@ -71,13 +75,36 @@ class Components
     }
 
     /**
-     * A name maps to a Latte component when its composed class implements the
-     * miko IComponent interface. Kept deliberately cheap (class_exists only).
+     * Resolve a component name to its fully-qualified Latte component class.
+     *
+     * Mirrors miko's Component::composeName (dots become namespace separators)
+     * but StudlyCases *every* segment — including single, separator-less names
+     * like `badge` -> `Badge`. miko only cases names containing a dash or dot,
+     * which works on case-insensitive filesystems (macOS) but breaks PSR-4
+     * autoloading on case-sensitive ones (Linux CI), where `...\badge` never
+     * resolves to `Badge.php`.
      */
-    protected static function isLatteComponent(string $name): bool
+    protected static function composeClass(string $name): string
     {
-        $class = str_contains($name, '\\') ? $name : Component::composeName($name);
+        if (str_contains($name, '\\')) {
+            return $name;
+        }
 
+        $class = collect(explode('.', $name))
+            ->map(fn (string $segment) => Str::studly($segment))
+            ->implode('\\');
+
+        $namespace = rtrim((string) config('latte.components_namespace'), '\\');
+
+        return $namespace.'\\'.$class;
+    }
+
+    /**
+     * A composed class maps to a Latte component when it exists and implements
+     * the miko IComponent interface. Kept deliberately cheap (class_exists).
+     */
+    protected static function isLatteComponent(string $class): bool
+    {
         return class_exists($class) && is_subclass_of($class, IComponent::class);
     }
 
