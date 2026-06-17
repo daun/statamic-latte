@@ -29,24 +29,26 @@ control structures and smart attributes for expressive templating.
 
 ```antlers
 {{ if entries | count }}
-  <p>
+  <nav>
     {{ entries }}
-        <span data-details="{{ details | to_json | entities }}">
-            {{ title }}{{ if !last }}, {{ /if }}
-        </span>
+        {{ if link }}
+            <a href="{{ link }}">{{ title }}</a>
+        {{ else }}
+            {{ title }}
+        {{ /if }}
     {{ /entries }}
-  </p>
+  </nav>
 {{ /if }}
 ```
 
 **Latte**
 
 ```latte
-<p n:ifcontent>
-    <span n:foreach={$entries as $entry} data-details={$entry->details}>
-        {$entry->title}{sep}, {sep}
-    </span>
-</p>
+<nav n:ifcontent n:inner-foreach={$entries as $entry}>
+  <a n:tag-if={$entry->link} href={$entry->link}>
+    {$entry->title}
+  </a>
+</nav>
 ```
 
 ## Installation
