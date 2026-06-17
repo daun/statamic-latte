@@ -4,7 +4,6 @@ Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](h
 
 ## Features
 
-- Render `.latte` views
 - Use Statamic's built-in tags and modifiers
 - Resolve the current layout from entry data
 - Render Antlers inline where useful
