@@ -34,6 +34,7 @@
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Statamic\Facades\Blink;
+use Statamic\Facades\Form;
 
 /**
  * Seed the session the way a real (failed/successful) Statamic form submission
@@ -267,5 +268,53 @@ describe('form after a successful submission', function () {
 
         $this->latte("{if s('form:success', ['in' => 'contact'])}SENT{/if}")
             ->assertSee('SENT');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// form:submission — the single submission exposed after a successful submit
+// ---------------------------------------------------------------------------
+
+describe('form:submission', function () {
+    test('exposes the submission data after a successful submit', function () {
+        // CLASSIFY: OK — submission() returns session('submission')->toArray() when
+        // form:success is truthy; the assoc array becomes a Content in the body.
+        $submission = Form::find('contact')->makeSubmission()->data(['name' => 'Grace']);
+        session()->put('form.contact.success', 'Thanks!');
+        session()->put('submission', $submission);
+
+        $this->latte('{s:form:submission in: contact}{$value->name}{/s:form:submission}')
+            ->assertSee('Grace');
+    });
+
+    test('renders nothing without a successful submission', function () {
+        // CLASSIFY: OK — success() is false → submission() returns null → body skipped (D2).
+        $this->latte('[{s:form:submission in: contact}{$value->name}{/s:form:submission}]')
+            ->assertSee('[]', false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// form:submissions — iterate stored submissions for a form
+// ---------------------------------------------------------------------------
+
+describe('form:submissions', function () {
+    test('renders nothing when a form has no submissions', function () {
+        // CLASSIFY: OK — iterable path; empty result skips the body.
+        $this->latte('[{s:form:submissions in: contact}{$value->name}{/s:form:submissions}]')
+            ->assertSee('[]', false);
+    });
+
+    test('iterates stored submissions exposing their data', function () {
+        // CLASSIFY: OK — querySubmissions() returns the stored submissions as an iterable.
+        $submission = Form::find('contact')->makeSubmission()->data(['name' => 'Ada', 'email' => 'ada@example.com']);
+        $submission->save();
+
+        try {
+            $this->latte('{s:form:submissions in: contact}{$value->name}{sep}, {/sep}{/s:form:submissions}')
+                ->assertSee('Ada');
+        } finally {
+            $submission->delete();
+        }
     });
 });
