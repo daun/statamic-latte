@@ -129,12 +129,14 @@ final class TagNode extends StatementNode
                 $ʟ_iterable = is_iterable($ʟ_result) && ! $ʟ_result instanceof \Daun\StatamicLatte\Data\Content;
                 if ($ʟ_iterable) {
                     %raw
-                } else {
+                } elseif ($ʟ_result !== null && $ʟ_result !== '' && $ʟ_result !== false) {
                     $value = $ʟ_result;
                     %node
                 }
                 $ʟ_body = ob_get_clean();
-                echo $ʟ_body === '' && ! $ʟ_iterable ? $ʟ_result : $ʟ_body;
+                echo $ʟ_body !== '' || $ʟ_iterable
+                    ? $ʟ_body
+                    : \Daun\StatamicLatte\Latte\Support\Tags::stringifyResult($ʟ_result);
                 XX,
             $this->printForeach($context),
             $this->content,

@@ -3,10 +3,12 @@
 namespace Daun\StatamicLatte\Latte\Support;
 
 use Daun\StatamicLatte\Data\Normalizer;
+use Daun\StatamicLatte\Data\Resolver;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Str;
 use Statamic\Facades\Blink;
 use Statamic\Statamic;
+use Statamic\Tags\FluentTag;
 
 class Tags
 {
@@ -76,6 +78,18 @@ class Tags
             $tag = $tag->withContent($content);
         }
 
+        return static::fetchTag($name, $tag);
+    }
+
+    /**
+     * Run a configured Statamic tag and normalize its output, rethrowing an
+     * unknown tag-method call as a friendlier exception.
+     *
+     * @param  FluentTag|mixed  $tag
+     * @return mixed
+     */
+    protected static function fetchTag(string $name, $tag)
+    {
         // Statamic flattens a paginated query into a plain array, discarding the
         // paginator itself. It does stash the original paginator in Blink first
         // (see GetsQueryResults::paginatedResults), so we forget any stale slot,
@@ -83,7 +97,11 @@ class Tags
         // That keeps `{foreach}`, `$p->total()`, `$p->links()` etc. idiomatic.
         Blink::forget('tag-paginator');
 
-        $result = $tag->fetch();
+        try {
+            $result = $tag->fetch();
+        } catch (\BadMethodCallException $e) {
+            throw self::invalidTagMethod($name, $e);
+        }
 
         /** @var mixed $paginator */
         $paginator = Blink::get('tag-paginator');
@@ -97,6 +115,59 @@ class Tags
         // Normalize tag output to the same Content/array shapes as view data,
         // so {foreach s('collection:pages') as $entry}{$entry->title} works.
         return Normalizer::normalize($result);
+    }
+
+    /**
+     * Stringify a self-closing / empty-body tag result for output.
+     *
+     * Scalars and Stringables print directly; booleans never print; Content
+     * and other wrappers are drilled to their underlying value and printed
+     * only if that resolves to a scalar/Stringable. Anything else prints
+     * nothing instead of fataling on a non-stringable object.
+     */
+    public static function stringifyResult(mixed $result): string
+    {
+        if (($value = self::printableValue($result)) !== null) {
+            return $value;
+        }
+
+        // Drill into Content / augmented wrappers, then retry.
+        return self::printableValue(Resolver::actual(Normalizer::unwrap($result))) ?? '';
+    }
+
+    /**
+     * Cast a value to its printable string, or null if it is not printable.
+     */
+    private static function printableValue(mixed $value): ?string
+    {
+        if (is_bool($value)) {
+            return '';
+        }
+
+        if (is_scalar($value) || $value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a friendlier exception for a call to an unknown tag method such
+     * as `{s:users:count}`, preserving the original as the previous exception.
+     */
+    private static function invalidTagMethod(string $name, \BadMethodCallException $e): \BadMethodCallException
+    {
+        [$tag, $method] = array_pad(explode(':', $name, 2), 2, null);
+
+        if ($method === null) {
+            return $e;
+        }
+
+        return new \BadMethodCallException(
+            "{s:{$name}}: '{$method}' is not a valid method of the {$tag} tag.",
+            0,
+            $e,
+        );
     }
 
     /**
