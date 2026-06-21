@@ -1,31 +1,40 @@
 <?php
 
-use Latte\CompileException;
+use Illuminate\Routing\Router;
 
-// CLASSIFY: FIXTURE — no named routes registered; tag likely returns empty or throws
+// CLASSIFY: OK — named routes registered in beforeEach; tests assert real URL output
 
 describe('route', function () {
-    test('compiles tag pair with name param', function () {
-        // CLASSIFY: FIXTURE — no named routes; tag throws RouteNotFoundException at runtime
-        expect(fn () => $this->latte('before {s:route name: "home"}{$value}{/s:route} after'))
-            ->toThrow(Exception::class);
+    beforeEach(function () {
+        /** @var Router $router */
+        $router = app('router');
+        $router->get('/hello', fn () => '')->name('hello');
+        $router->get('/greet/{person}', fn () => '')->name('greet');
+        $router->getRoutes()->refreshNameLookups();
     });
 
-    test('self-closing compiles without parse error', function () {
-        // CLASSIFY: FIXTURE — no named routes; Latte compiles but runtime throws
-        expect(fn () => $this->latte('{s:route name: "home"/}'))
-            ->not->toThrow(CompileException::class);
+    test('self-closing returns URL for named route without params', function () {
+        $this->latte('{s:route name: "hello"/}')
+            ->assertSee('http://localhost/hello', false);
     });
 
-    test('supports as: param (throws when no route defined)', function () {
-        // CLASSIFY: FIXTURE — no named routes; tag throws before as: variable is populated
-        expect(fn () => $this->latte('{s:route name: "home", as: url}{$url}{/s:route}'))
-            ->toThrow(Exception::class);
+    test('pair form exposes URL as $value', function () {
+        $this->latte('{s:route name: "hello"}{$value}{/s:route}')
+            ->assertSee('http://localhost/hello', false);
     });
 
-    test('tag pair throws RouteNotFoundException for unknown route', function () {
-        // CLASSIFY: FIXTURE — no named routes registered
-        expect(fn () => $this->latte('A{s:route name: "nonexistent"}{$value}{/s:route}B'))
+    test('extra params are forwarded as route parameters', function () {
+        $this->latte('{s:route name: "greet", person: "world"/}')
+            ->assertSee('http://localhost/greet/world', false);
+    });
+
+    test('pair form works with parameterized route', function () {
+        $this->latte('{s:route name: "greet", person: "alice"}{$value}{/s:route}')
+            ->assertSee('http://localhost/greet/alice', false);
+    });
+
+    test('tag throws for unknown route name', function () {
+        expect(fn () => $this->latte('{s:route name: "nonexistent"/}'))
             ->toThrow(Exception::class);
     });
 });
