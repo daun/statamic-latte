@@ -58,6 +58,9 @@ final class TagNode extends StatementNode
         'yield' => 'Use the built-in `block` tag instead',
         'section' => 'Use the built-in `block` tag instead',
         'scope' => 'Not supported in Latte',
+        'loop' => 'Use the built-in `{for}` or `{foreach}` tag instead',
+        'increment' => 'Use Latte\'s `$iterator->counter` inside a loop instead',
+        'dump' => 'Use the built-in `{dump}` tag instead',
     ];
 
     /** @return \Generator<int, ?array, array{AreaNode, ?Tag}, static> */
