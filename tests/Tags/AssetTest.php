@@ -1,36 +1,45 @@
 <?php
 
-// CLASSIFY: FIXTURE — no asset containers configured; tests verify Latte compilation and graceful empty/null output
+use Statamic\Facades\Stache;
+
+// CLASSIFY: OK — assets container + real image fixture in place; tests assert actual asset data
 
 describe('asset', function () {
-    test('compiles self-closing asset tag without crashing', function () {
-        // CLASSIFY: FIXTURE — no containers; tag returns null, self-closing outputs nothing
-        $this->latte('{s:asset url: "files/image.jpg"/}')
-            ->assertSee('');
+    beforeEach(function () {
+        // Stache needs to be warm before asset lookups; clear any stale Stache cache.
+        Stache::clear();
     });
 
-    test('pair body is skipped when the asset is null', function () {
-        // CLASSIFY: OK — null result skips the pair body (Antlers parity); no crash.
-        $this->latte('[{s:asset url: "files/image.jpg"}{$value->url}{/s:asset}]')
+    test('finds asset by id and exposes its url', function () {
+        $this->latte('{s:asset url: "assets::img/example.jpg"}{$value->url}{/s:asset}')
+            ->assertSee('/assets/img/example.jpg', false);
+    });
+
+    test('exposes asset extension via pair body', function () {
+        $this->latte('{s:asset url: "assets::img/example.jpg"}{$value->extension}{/s:asset}')
+            ->assertSee('jpg');
+    });
+
+    test('exposes asset path via pair body', function () {
+        $this->latte('{s:asset url: "assets::img/example.jpg"}{$value->path}{/s:asset}')
+            ->assertSee('img/example.jpg', false);
+    });
+
+    test('pair body is skipped when asset path is unknown (null result skips body)', function () {
+        // CLASSIFY: OK — unknown path returns null; TagNode skips pair body, outputs nothing.
+        $this->latte('[{s:asset url: "assets::img/nonexistent.jpg"}{$value->url}{/s:asset}]')
             ->assertSee('[]', false);
     });
 
-    test('renders surrounding static content', function () {
-        // CLASSIFY: FIXTURE — no containers
-        $this->latte('img: {s:asset url: "files/image.jpg"/} end')
-            ->assertSee('img:')
+    test('supports as: param to capture asset into named variable', function () {
+        $this->latte('{s:asset as: img, url: "assets::img/example.jpg"}{$img->extension}{/s:asset}')
+            ->assertSee('jpg');
+    });
+
+    test('renders surrounding static content alongside asset', function () {
+        $this->latte('ext: {s:asset url: "assets::img/example.jpg"}{$value->extension}{/s:asset} end')
+            ->assertSee('ext:')
+            ->assertSee('jpg')
             ->assertSee('end');
-    });
-
-    test('supports as: param to capture asset into variable', function () {
-        // CLASSIFY: FIXTURE — no containers; variable is null/empty
-        $this->latte('{s:asset as: img, url: "files/image.jpg"}{/s:asset}')
-            ->assertSee('');
-    });
-
-    test('pair body with container param is also skipped when null', function () {
-        // CLASSIFY: OK — container param doesn't change the null result; body still skipped.
-        $this->latte('[{s:asset container: "files", url: "image.jpg"}{$value->url}{/s:asset}]')
-            ->assertSee('[]', false);
     });
 });
