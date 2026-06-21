@@ -1,31 +1,38 @@
 <?php
 
-// CLASSIFY: FIXTURE — no user fixtures exist; tests verify Latte compilation and graceful empty output
+// CLASSIFY: OK — user fixtures exist; tests assert real data from alice@example.com and bob@example.com
 
 describe('users', function () {
-    test('compiles and renders empty when no users exist', function () {
-        // CLASSIFY: FIXTURE — no user fixtures
-        $this->latte('{s:users}{$value->name}{/s:users}')
-            ->assertSee('');
+    test('renders all user names when iterating', function () {
+        $this->latte('{s:users}{$value->name}{sep}, {/sep}{/s:users}')
+            ->assertSee('Alice Smith')
+            ->assertSee('Bob Jones');
+    });
+
+    test('sorts by email ascending by default', function () {
+        // alice@ < bob@ alphabetically
+        $this->latte('{s:users}{$value->email}{sep}, {/sep}{/s:users}')
+            ->assertSeeInOrder(['alice@example.com', 'bob@example.com'], false);
     });
 
     test('supports as: param capturing result', function () {
-        // CLASSIFY: FIXTURE — no user fixtures; verifies as: compiles and loop runs zero iterations
-        $this->latte('{s:users as: allUsers}{foreach $allUsers as $u}{$u->name}{/foreach}{/s:users}')
-            ->assertSee('');
+        $this->latte('{s:users as: allUsers}{foreach $allUsers as $u}{$u->name}{sep}, {/sep}{/foreach}{/s:users}')
+            ->assertSee('Alice Smith')
+            ->assertSee('Bob Jones');
     });
 
-    test('supports group filter param', function () {
-        // CLASSIFY: FIXTURE — no user fixtures
+    test('group filter narrows results to group members only', function () {
+        // Alice is in editors; Bob is not
         $this->latte('{s:users group: editors}{$value->name}{/s:users}')
-            ->assertSee('');
+            ->assertSee('Alice Smith')
+            ->assertDontSee('Bob Jones');
     });
 
-    test('renders fallback content alongside empty iteration', function () {
-        // CLASSIFY: FIXTURE — no user fixtures; static text must still appear
-        $this->latte('before {s:users}{$value->email}{/s:users} after')
+    test('renders fallback static content alongside iteration', function () {
+        $this->latte('before {s:users}{$value->email}{sep},{/sep}{/s:users} after')
             ->assertSee('before')
-            ->assertSee('after');
+            ->assertSee('after')
+            ->assertSee('alice@example.com');
     });
 
     test('s:users:count throws a friendly error for the unknown method', function () {

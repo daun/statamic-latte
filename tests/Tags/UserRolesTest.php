@@ -1,30 +1,32 @@
 <?php
 
-// CLASSIFY: FIXTURE — no user roles configured; tests verify Latte compilation and graceful empty output
+// CLASSIFY: OK — user role fixture (editor) exists; tests assert real role data
 
 describe('user_roles', function () {
-    test('compiles and renders empty when no roles exist', function () {
-        // CLASSIFY: FIXTURE — no roles
+    test('renders role title when iterating all roles', function () {
         $this->latte('{s:user_roles}{$value->title}{/s:user_roles}')
-            ->assertSee('');
+            ->assertSee('Editor');
     });
 
-    test('supports as: param', function () {
-        // CLASSIFY: FIXTURE — no roles
+    test('renders role handle when iterating', function () {
+        $this->latte('{s:user_roles}{$value->handle}{/s:user_roles}')
+            ->assertSee('editor');
+    });
+
+    test('supports as: param capturing role list', function () {
         $this->latte('{s:user_roles as: roles}{foreach $roles as $r}{$r->handle}{/foreach}{/s:user_roles}')
-            ->assertSee('');
+            ->assertSee('editor');
     });
 
     test('renders surrounding static content', function () {
-        // CLASSIFY: FIXTURE — no roles
         $this->latte('start {s:user_roles}{$value->handle}{/s:user_roles} end')
             ->assertSee('start')
+            ->assertSee('editor')
             ->assertSee('end');
     });
 
-    test('exposes value fields in body', function () {
-        // CLASSIFY: FIXTURE — no roles; body compiles even if never executed
-        $this->latte('{s:user_roles}{$value->handle} {$value->title}{/s:user_roles}')
-            ->assertSee('');
+    test('exposes value handle and title fields together', function () {
+        $this->latte('{s:user_roles}{$value->handle}:{$value->title}{/s:user_roles}')
+            ->assertSee('editor:Editor');
     });
 });

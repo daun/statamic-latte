@@ -1,5 +1,7 @@
 <?php
 
+use Statamic\Exceptions\TaxonomyNotFoundException;
+
 /*
  * CLASSIFICATION OVERVIEW
  * taxonomy (index/wildcard) — OK: topics taxonomy + terms fixture in place
@@ -41,6 +43,6 @@ describe('taxonomy', function () {
 
     test('throws for unknown taxonomy handle', function () {
         expect(fn () => $this->latte('{s:taxonomy from: nonexistent}{$value->title}{/s:taxonomy}'))
-            ->toThrow(\Statamic\Exceptions\TaxonomyNotFoundException::class);
+            ->toThrow(TaxonomyNotFoundException::class);
     });
 });

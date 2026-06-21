@@ -31,5 +31,9 @@ trait ResolvesStatamicConfig
         foreach ($stores as $store => $path) {
             $app['config']->set("statamic.stache.stores.{$store}.directory", fixtures_path($path));
         }
+
+        // Wire roles/groups YAML paths to fixture files so the file driver finds them.
+        $app['config']->set('statamic.users.repositories.file.paths.roles', fixtures_path('users/roles.yaml'));
+        $app['config']->set('statamic.users.repositories.file.paths.groups', fixtures_path('users/groups.yaml'));
     }
 }

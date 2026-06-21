@@ -1,44 +1,67 @@
 <?php
 
 use Latte\CompileException;
+use Statamic\Facades\User;
 
-// CLASSIFY: FIXTURE/N/A — no authenticated user; tag returns empty or null; no user fixtures
+// CLASSIFY: OK — user fixtures exist; authenticated path uses alice@example.com
 
 describe('user:profile', function () {
     test('compiles tag pair without parse error', function () {
-        // CLASSIFY: FIXTURE — no auth user; self-closing avoids runtime Content-to-string error
         $latteError = false;
         try {
             $this->latte('{s:user:profile/}');
         } catch (CompileException $e) {
             $latteError = true;
         } catch (Throwable $t) {
-            // runtime error is acceptable; compile error is not
+            // runtime error acceptable; compile error is not
         }
         expect($latteError)->toBeFalse();
     });
 
     test('renders empty when no user is authenticated', function () {
-        // CLASSIFY: OK — no user → result skipped/empty; no Content-to-string crash.
         $this->latte('[{s:user:profile}{$value->name}{/s:user:profile}]')
             ->assertSee('[]', false);
     });
 
     test('keeps surrounding static content with no authenticated user', function () {
-        // CLASSIFY: OK — proxy no longer fatals casting Content to string.
         $this->latte('A {s:user:profile}{$value->name}{/s:user:profile} B')
             ->assertSee('A')
             ->assertSee('B');
     });
 
-    test('supports as: param capturing profile data', function () {
-        // CLASSIFY: FIXTURE — no auth user; variable is null/empty, loop skips
+    test('shows authenticated user email in pair body', function () {
+        $alice = User::findByEmail('alice@example.com');
+        $this->actingAs($alice);
+
+        $this->latte('{s:user:profile}{$value->email}{/s:user:profile}')
+            ->assertSee('alice@example.com');
+    });
+
+    test('shows authenticated user name in pair body', function () {
+        $alice = User::findByEmail('alice@example.com');
+        $this->actingAs($alice);
+
+        $this->latte('{s:user:profile}{$value->name}{/s:user:profile}')
+            ->assertSee('Alice Smith');
+    });
+
+    test('as: param captures profile into named variable', function () {
+        $alice = User::findByEmail('alice@example.com');
+        $this->actingAs($alice);
+
         $this->latte('{s:user:profile as: profile}{$profile->email}{/s:user:profile}')
-            ->assertSee('');
+            ->assertSee('alice@example.com');
+    });
+
+    test('supports as: param with no user — variable is null, body runs once with null', function () {
+        // No auth user; profile returns null → aliased path still renders body once with $profile = null
+        // The tag proxy executes the body (aliased mode always runs body once)
+        // No assertion on content here; just verify no fatal thrown
+        expect(fn () => $this->latte('{s:user:profile as: profile}{/s:user:profile}'))
+            ->not->toThrow(CompileException::class);
     });
 
     test('s:user:logout_url self-closing compiles', function () {
-        // CLASSIFY: N/A — related user tag; no session needed to compile
         expect(fn () => $this->latte('{s:user:logout_url/}'))
             ->not->toThrow(CompileException::class);
     });
