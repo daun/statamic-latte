@@ -1,44 +1,46 @@
 <?php
 
-use Statamic\Exceptions\TaxonomyNotFoundException;
-
 /*
  * CLASSIFICATION OVERVIEW
- * taxonomy (index/wildcard) — FIXTURE: no taxonomy data exists in fixtures;
- *                             Statamic throws TaxonomyNotFoundException when handle not found
- * taxonomy:count            — FIXTURE: same; throws rather than returning 0
- *
- * Tests verify the Latte layer compiles/forwards to the tag correctly (i.e. the proxy
- * passes params through). The actual tag behavior (throwing) is a fixture gap, not a
- * proxy bug.
+ * taxonomy (index/wildcard) — OK: topics taxonomy + terms fixture in place
+ * taxonomy:count            — OK: returns term count from topics
  */
 
 describe('taxonomy', function () {
-    test('throws for unknown taxonomy handle', function () {
-        // CLASSIFY: FIXTURE — no taxonomy fixture; Statamic throws TaxonomyNotFoundException
-        expect(fn () => $this->latte('{s:taxonomy from: tags}{$value->title}{/s:taxonomy}'))
-            ->toThrow(TaxonomyNotFoundException::class);
+    test('renders terms from topics taxonomy', function () {
+        $this->latte('{s:taxonomy from: topics}{$value->title}{sep}, {/sep}{/s:taxonomy}')
+            ->assertSee('News')
+            ->assertSee('Tutorials');
     });
 
-    test('count method throws for missing taxonomy', function () {
-        // CLASSIFY: FIXTURE — no taxonomy fixture; count hits the same code path
-        expect(fn () => $this->latte('{s:taxonomy:count from: tags /}'))
-            ->toThrow(TaxonomyNotFoundException::class);
+    test('count returns correct number of terms', function () {
+        $this->latte('{s:taxonomy:count from: topics /}')
+            ->assertSee('2');
     });
 
-    test('wildcard method throws for named unknown taxonomy', function () {
-        // CLASSIFY: FIXTURE — {s:taxonomy:tags} maps to wildcard($tag='tags'); same exception
-        expect(fn () => $this->latte('{s:taxonomy:tags}{$value->title}{/s:taxonomy:tags}'))
-            ->toThrow(TaxonomyNotFoundException::class);
+    test('wildcard method renders terms by taxonomy handle', function () {
+        $this->latte('{s:taxonomy:topics}{$value->title}{sep}, {/sep}{/s:taxonomy:topics}')
+            ->assertSee('News')
+            ->assertSee('Tutorials');
     });
 
-    test('accepts as param (still throws due to missing fixture)', function () {
-        // CLASSIFY: FIXTURE — as: terms; Statamic throws before iterating
-        expect(fn () => $this->latte(<<<'LATTE'
-            {s:taxonomy as: terms, from: tags}
+    test('as param captures term list into named variable', function () {
+        $this->latte(<<<'LATTE'
+            {s:taxonomy as: terms, from: topics}
                 {foreach $terms as $term}|{$term->title}|{/foreach}
             {/s:taxonomy}
-        LATTE))
-            ->toThrow(TaxonomyNotFoundException::class);
+        LATTE)
+            ->assertSee('|News|')
+            ->assertSee('|Tutorials|');
+    });
+
+    test('count tag method works as tag pair', function () {
+        $this->latte('{s:taxonomy:count from: topics}{$value}{/s:taxonomy:count}')
+            ->assertSee('2');
+    });
+
+    test('throws for unknown taxonomy handle', function () {
+        expect(fn () => $this->latte('{s:taxonomy from: nonexistent}{$value->title}{/s:taxonomy}'))
+            ->toThrow(\Statamic\Exceptions\TaxonomyNotFoundException::class);
     });
 });
