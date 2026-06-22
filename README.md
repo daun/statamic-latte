@@ -4,7 +4,6 @@ Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](h
 
 ## Features
 
-- Render `.latte` views
 - Use Statamic's built-in tags and modifiers
 - Resolve the current layout from entry data
 - Render Antlers inline where useful
@@ -30,24 +29,26 @@ control structures and smart attributes for expressive templating.
 
 ```antlers
 {{ if entries | count }}
-  <p>
+  <nav>
     {{ entries }}
-        <span data-details="{{ details | to_json | entities }}">
-            {{ title }}{{ if !last }}, {{ /if }}
-        </span>
+        {{ if link }}
+            <a href="{{ link }}">{{ title }}</a>
+        {{ else }}
+            {{ title }}
+        {{ /if }}
     {{ /entries }}
-  </p>
+  </nav>
 {{ /if }}
 ```
 
 **Latte**
 
 ```latte
-<p n:ifcontent>
-    <span n:foreach={$entries as $entry} data-details={$entry->details}>
-        {$entry->title}{sep}, {sep}
-    </span>
-</p>
+<nav n:ifcontent n:inner-foreach={$entries as $entry}>
+  <a n:tag-if={$entry->link} href={$entry->link}>
+    {$entry->title}
+  </a>
+</nav>
 ```
 
 ## Installation
@@ -148,6 +149,40 @@ Some tags transform their tag-pair body instead of returning data (e.g. `widont`
 {s:widont content: $entry->headline /}
 ```
 
+### Forms
+
+Through the proxy, `form:create` returns the form's *data* rather than rendered
+markup, so you build the `<form>` in Latte and loop the fields yourself. Capture
+it with `as:`:
+
+```latte
+{s:form:create as: form, in: contact}
+    <form method="{$form->attrs->method}" action="{$form->attrs->action}">
+        {foreach $form->fields as $field}
+            <label>{$field->display}</label>
+            <input type="text" name="{$field->name}" value="{$field->value}">
+            {if $field->error}<span class="error">{$field->error}</span>{/if}
+        {/foreach}
+        <button type="submit">Send</button>
+    </form>
+{/s:form:create}
+```
+
+Check submission state with the scalar `form:success` and the boolean
+`form:errors` gate:
+
+```latte
+{s:form:success in: contact}<p>{$value}</p>{/s:form:success}
+
+{s:form:errors in: contact}
+    <p>Please fix the errors below.</p>
+{/s:form:errors}
+```
+
+To list individual error messages, read them from the `form:create` capture
+(`$form->errors`, or `$form->error->{handle}` for a field's first error) — the
+`form:errors` pair is a boolean gate here, not an iterator.
+
 ### Modifiers
 
 [Statamic Modifiers](https://statamic.dev/modifiers) can be used as filters in Latte:
@@ -227,6 +262,52 @@ default content for when no section was defined, use the paired form:
 Sections and yields share Statamic's underlying content store, so they interoperate
 freely across Latte, Antlers and Blade templates: a section defined in an Antlers
 partial can be yielded in a Latte layout, and vice versa.
+
+### Embeds & Slots
+
+Latte composes templates with [`{embed}`](https://latte.nette.org/en/template-inheritance#toc-horizontal-reuse)
+and [`{block}`](https://latte.nette.org/en/template-inheritance): a partial defines
+named, fillable regions with `{block}`, and the embedding template overrides them
+inside `{embed}`.
+
+For parity with the component/slot vocabulary used by Antlers and Blade, `{slot}` is
+provided as an **exact alias for `{block}`**. It is a pure synonym — same parsing, same
+rendering — so you can use slot terminology on both sides of an embed:
+
+```latte
+{* partials/figure.latte *}
+
+<figure>
+    <img src="{$src}" alt="{$alt}">
+    <figcaption>{slot caption}Default caption{/slot}</figcaption>
+</figure>
+```
+
+```latte
+{* template *}
+
+{embed file 'partials.figure', src: $image->url, alt: $image->alt}
+    {slot caption}A custom caption{/slot}
+{/embed}
+```
+
+Because `{slot}` is identical to `{block}`, the two are interchangeable everywhere
+(including layouts and `{extends}`) and you can freely mix them. Omitting a slot in the
+embed falls back to the default content defined in the partial.
+
+The `n:slot` attribute is also available (mirroring `n:block`) and works on both sides:
+
+```latte
+{* partials/figure.latte *}
+
+<figcaption n:ifcontent n:slot="caption">Default caption</figcaption>
+
+{* template *}
+
+{embed file 'partials.figure'}
+    <figcaption n:slot="caption">A custom caption</figcaption>
+{/embed}
+```
 
 ### Caching
 
