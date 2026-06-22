@@ -13,9 +13,9 @@ describe('unsupported tags', function () {
             ->toThrow(CompileException::class, 'Use the built-in `{for}` or `{foreach}` tag instead');
     });
 
-    test('increment is blocked in favour of $iterator', function () {
+    test('increment is blocked in favour of variable assigment', function () {
         expect(fn () => $this->latte('{s:increment /}'))
-            ->toThrow(CompileException::class, '$iterator->counter');
+            ->toThrow(CompileException::class, 'variable assigment');
     });
 
     test('dump is blocked in favour of {dump}', function () {

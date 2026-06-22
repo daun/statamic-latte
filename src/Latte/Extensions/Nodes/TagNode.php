@@ -52,14 +52,16 @@ final class TagNode extends StatementNode
     protected static array $unsupportedTags = [
         'cache' => 'Use the built-in `{cache}` tag instead',
         'foreach' => 'Use the built-in `{foreach}` tag instead',
-        'partial' => 'Use the built-in `{include}` or `embed` tag instead',
+        'partial' => 'Use the built-in `{include}` or `{embed}` tag instead',
         'switch' => 'Use the built-in `{switch}` tag instead',
-        'translate' => 'Use the built-in `|translate` filter instead',
-        'yield' => 'Use the built-in `block` tag instead',
-        'section' => 'Use the built-in `block` tag instead',
+        'translate' => 'Use the built-in `{_}` tag or `|translate` filter instead',
+        'trans' => 'Use the built-in `{_}` tag or `|translate` filter instead',
+        'trans_choice' => 'Use the built-in `{_}` tag or `|translate` filter instead',
+        'yield' => 'Use the built-in `{yield}` tag instead',
+        'section' => 'Use the built-in `{section}` tag instead',
         'scope' => 'Not supported in Latte',
         'loop' => 'Use the built-in `{for}` or `{foreach}` tag instead',
-        'increment' => 'Use Latte\'s `$iterator->counter` inside a loop instead',
+        'increment' => 'Use variable assigment inside a loop instead',
         'dump' => 'Use the built-in `{dump}` tag instead',
     ];
 
