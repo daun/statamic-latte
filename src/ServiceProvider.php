@@ -2,8 +2,8 @@
 
 namespace Daun\StatamicLatte;
 
-use Daun\StatamicLatte\Latte\LaravelViewLoader;
 use Daun\StatamicLatte\Latte\Extensions;
+use Daun\StatamicLatte\Latte\LaravelViewLoader;
 use Daun\StatamicLatte\Latte\Loaders\TagMethodLoader;
 use Daun\StatamicLatte\Latte\NormalizingEngine;
 use Illuminate\Support\Facades\View;
