@@ -262,6 +262,52 @@ Sections and yields share Statamic's underlying content store, so they interoper
 freely across Latte, Antlers and Blade templates: a section defined in an Antlers
 partial can be yielded in a Latte layout, and vice versa.
 
+### Embeds & Slots
+
+Latte composes templates with [`{embed}`](https://latte.nette.org/en/template-inheritance#toc-horizontal-reuse)
+and [`{block}`](https://latte.nette.org/en/template-inheritance): a partial defines
+named, fillable regions with `{block}`, and the embedding template overrides them
+inside `{embed}`.
+
+For parity with the component/slot vocabulary used by Antlers and Blade, `{slot}` is
+provided as an **exact alias for `{block}`**. It is a pure synonym — same parsing, same
+rendering — so you can use slot terminology on both sides of an embed:
+
+```latte
+{* partials/figure.latte *}
+
+<figure>
+    <img src="{$src}" alt="{$alt}">
+    <figcaption>{slot caption}Default caption{/slot}</figcaption>
+</figure>
+```
+
+```latte
+{* template *}
+
+{embed file 'partials.figure', src: $image->url, alt: $image->alt}
+    {slot caption}A custom caption{/slot}
+{/embed}
+```
+
+Because `{slot}` is identical to `{block}`, the two are interchangeable everywhere
+(including layouts and `{extends}`) and you can freely mix them. Omitting a slot in the
+embed falls back to the default content defined in the partial.
+
+The `n:slot` attribute is also available (mirroring `n:block`) and works on both sides:
+
+```latte
+{* partials/figure.latte *}
+
+<figcaption n:ifcontent n:slot="caption">Default caption</figcaption>
+
+{* template *}
+
+{embed file 'partials.figure'}
+    <figcaption n:slot="caption">A custom caption</figcaption>
+{/embed}
+```
+
 ### Caching
 
 #### Cache
