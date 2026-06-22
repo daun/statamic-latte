@@ -1,0 +1,11 @@
+tree:
+  -
+    title: Home
+    url: /
+  -
+    title: About
+    url: /about
+    children:
+      -
+        title: Team
+        url: /about/team

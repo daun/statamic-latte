@@ -148,6 +148,40 @@ Some tags transform their tag-pair body instead of returning data (e.g. `widont`
 {s:widont content: $entry->headline /}
 ```
 
+### Forms
+
+Through the proxy, `form:create` returns the form's *data* rather than rendered
+markup, so you build the `<form>` in Latte and loop the fields yourself. Capture
+it with `as:`:
+
+```latte
+{s:form:create as: form, in: contact}
+    <form method="{$form->attrs->method}" action="{$form->attrs->action}">
+        {foreach $form->fields as $field}
+            <label>{$field->display}</label>
+            <input type="text" name="{$field->name}" value="{$field->value}">
+            {if $field->error}<span class="error">{$field->error}</span>{/if}
+        {/foreach}
+        <button type="submit">Send</button>
+    </form>
+{/s:form:create}
+```
+
+Check submission state with the scalar `form:success` and the boolean
+`form:errors` gate:
+
+```latte
+{s:form:success in: contact}<p>{$value}</p>{/s:form:success}
+
+{s:form:errors in: contact}
+    <p>Please fix the errors below.</p>
+{/s:form:errors}
+```
+
+To list individual error messages, read them from the `form:create` capture
+(`$form->errors`, or `$form->error->{handle}` for a field's first error) — the
+`form:errors` pair is a boolean gate here, not an iterator.
+
 ### Modifiers
 
 [Statamic Modifiers](https://statamic.dev/modifiers) can be used as filters in Latte:
