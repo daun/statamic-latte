@@ -7,6 +7,7 @@ Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](h
 - Use Statamic's built-in tags and modifiers
 - Resolve the current layout from entry data
 - Render Antlers inline where useful
+- Use `<x-component>` for Latte and Blade components
 
 ## Why Latte?
 
@@ -357,6 +358,53 @@ Nesting `cache` and `nocache` is also not yet supported. The following **will no
     {/nocache}
     this will also be cached
 {/cache}
+```
+
+### Components
+
+Latte templates support the `<x-component>` syntax. A single tag dispatches at runtime to either
+a Latte or a Blade component. In case of a conflict, Latte wins.
+
+```latte
+<x-badge label="New"/>
+<x-alert message={$error}/>
+<x-forms.button type="submit">Go</x-forms.button>
+```
+
+#### Attributes
+
+Attributes can be static strings, dynamic PHP expressions, or bare booleans. Extra attributes not declared as constructor params flow into the Blade `$attributes` bag.
+
+```latte
+<x-button type="submit"/>
+<x-button count={$n}/>
+<x-button label={strtoupper($s)}/>
+<x-button disabled/>
+<x-greeting ...{$props}/>
+```
+
+#### Slots
+
+Blade components accept a body as the default slot. The slot is captured as a pre-rendered string and echoed directly.
+Latte components currently do not support slots and throw a compile-time error.
+
+```latte
+<x-card>
+    Hello <strong>World</strong>
+</x-card>
+<x-card>
+    {$code|noescape}
+</x-card>
+```
+
+#### Control attributes
+
+Latte's `n:` control attributes work on components:
+
+```latte
+<x-card n:if="$show">content</x-card>
+
+<x-greeting n:foreach="$names as $name" name={$name}/>
 ```
 
 ## License

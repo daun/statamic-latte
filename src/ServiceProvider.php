@@ -16,6 +16,7 @@ class ServiceProvider extends AddonServiceProvider
         Extensions\AntlersExtension::class,
         Extensions\AttributeNormalizationExtension::class,
         Extensions\CacheExtension::class,
+        Extensions\ComponentExtension::class,
         Extensions\LayoutExtension::class,
         Extensions\ModifierExtension::class,
         Extensions\ResolverExtension::class,
