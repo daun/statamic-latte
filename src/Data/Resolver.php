@@ -23,6 +23,12 @@ class Resolver
     public static function actual(...$values): mixed
     {
         foreach ($values as $value) {
+            // A Deferred proxy resolves like its underlying Value; take the
+            // source (cheap) and let the delegation loop peel it.
+            if ($value instanceof Deferred) {
+                $value = $value->source();
+            }
+
             // Delegate wrapper peeling to Statamic core so future wrapper types
             // are handled upstream for free. Loop until stable because one
             // unwrap can expose another wrapper (e.g. a Value whose augmented

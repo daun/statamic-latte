@@ -160,10 +160,35 @@ class Content implements ArrayAccess, IteratorAggregate
     public static function wrapAll(array $data): array
     {
         foreach ($data as $key => $value) {
-            $data[$key] = static::wrap($value);
+            $data[$key] = static::wrapTopLevel($value);
         }
 
         return $data;
+    }
+
+    /**
+     * Top-level wrap with relationship deferral.
+     *
+     * A non-empty relationship Value is postponed behind a {@see Deferred}
+     * proxy so its query + augmentation only runs if the template touches it.
+     * Everything else (scalars, non-relationship Values like markdown/bard,
+     * empty relationships) is wrapped eagerly so Latte keeps correct scalar
+     * and truthiness semantics. Nested access stays lazy via Content already,
+     * so deferral is only needed at this top level.
+     */
+    protected static function wrapTopLevel(mixed $value): mixed
+    {
+        // empty() is exact here: relationship raw values are entry/term/asset
+        // IDs (UUIDs or handles), never 0 or '0', so the empty('0')/empty(0)
+        // false-positive cannot occur. An empty/null raw means no relations.
+        if ($value instanceof Value
+            && $value->isRelationship()
+            && ! empty($value->raw())
+        ) {
+            return new Deferred($value);
+        }
+
+        return static::wrap($value);
     }
 
     /**
@@ -229,6 +254,11 @@ class Content implements ArrayAccess, IteratorAggregate
     {
         if ($value instanceof Content) {
             return $value->source();
+        }
+        if ($value instanceof Deferred) {
+            // Materialize then unwrap: modifiers, n:attr and Antlers all expect
+            // a plain array / augmentable, never a proxy object.
+            return static::unwrap($value->materialize());
         }
         if (is_array($value)) {
             return array_map([static::class, 'unwrap'], $value);

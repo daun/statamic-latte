@@ -45,6 +45,14 @@ tabs:
               listable: false
               localizable: true
           -
+            handle: related_pages
+            field:
+              type: entries
+              collections:
+                - pages
+              listable: false
+              localizable: true
+          -
             handle: meta
             field:
               type: group
