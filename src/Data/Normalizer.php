@@ -6,7 +6,7 @@ namespace Daun\StatamicLatte\Data;
  * @deprecated Use {@see Content::wrap()}, {@see Content::wrapAll()} and
  * {@see Content::unwrap()} instead. This shim delegates to Content and exists
  * only so that already-compiled Latte templates baking the old FQCN keep
- * working across an addon upgrade. It will be removed in the next major.
+ * working across an addon upgrade. It will be removed in the next major (3.0).
  */
 class Normalizer
 {

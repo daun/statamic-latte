@@ -28,6 +28,11 @@ class Resolver
             // unwrap can expose another wrapper (e.g. a Value whose augmented
             // value is an ArrayableString). Statamic's helper does not resolve
             // query builders, so we keep that step ourselves.
+            //
+            // The object guard bounds the loop: statamic_value() only ever
+            // peels wrapper *objects*, so once both the pre- and post-unwrap
+            // values are non-objects no further peeling is possible and we
+            // stop, even if the identity check alone would keep going.
             do {
                 $previous = $value;
                 $value = statamic_value($value);
