@@ -4,9 +4,15 @@ namespace Daun\StatamicLatte\Data;
 
 use ArrayAccess;
 use ArrayIterator;
+use Illuminate\Support\Collection as LaravelCollection;
 use IteratorAggregate;
 use Statamic\Contracts\Data\Augmentable;
 use Statamic\Contracts\Data\Augmented;
+use Statamic\Data\AugmentedCollection;
+use Statamic\Facades\Compare;
+use Statamic\Fields\ArrayableString;
+use Statamic\Fields\LabeledValue;
+use Statamic\Fields\Value;
 use Statamic\Fields\Values;
 use Traversable;
 
@@ -89,7 +95,7 @@ class Content implements ArrayAccess, IteratorAggregate
             return $this->cache[$key];
         }
 
-        return $this->cache[$key] = Normalizer::normalize($this->rawValue($key));
+        return $this->cache[$key] = static::wrap($this->rawValue($key));
     }
 
     protected function rawValue(string $key): mixed
@@ -139,8 +145,95 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /** Escape hatch: get the underlying source. */
-    public function unwrap(): Augmentable|Values|array
+    public function source(): Augmentable|Values|array
     {
         return $this->source;
+    }
+
+    /**
+     * Normalize a bag of template variables into template shapes, leaving
+     * framework internals alone.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function wrapAll(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            $data[$key] = static::wrap($value);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Normalize Statamic data into a predictable template shape:
+     *   - single augmented thing (Entry/Asset/Term, Values group/grid row) -> Content
+     *   - associative map (keyed collection / keyed array)                 -> Content
+     *   - sequential list (list collection / list array)                  -> plain array
+     *   - scalars / unknown objects                                       -> untouched
+     */
+    public static function wrap(mixed $value): mixed
+    {
+        // Unwrap lazy single values first.
+        if ($value instanceof Value) {
+            return static::wrap($value->value());
+        }
+        if ($value instanceof LabeledValue) {
+            return $value->value();
+        }
+        if ($value instanceof ArrayableString) {
+            return (string) $value;
+        }
+        if (Compare::isQueryBuilder($value)) {
+            return static::wrap($value->get());
+        }
+
+        // Single augmented object -> Content wrapper (object semantics).
+        if ($value instanceof Augmentable || $value instanceof Values) {
+            return new self($value);
+        }
+
+        // Collections + arrays: shape decides. List -> array, keyed -> object.
+        if ($value instanceof AugmentedCollection || $value instanceof LaravelCollection) {
+            return static::wrapArray($value->all());
+        }
+        if (is_array($value)) {
+            return static::wrapArray($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Sequential list -> plain array of wrapped children (iterable).
+     * Associative map -> Content object (lazy, `->`/`[]` access).
+     *
+     * @param  array<mixed>  $array
+     */
+    protected static function wrapArray(array $array): mixed
+    {
+        if (array_is_list($array)) {
+            return array_map([static::class, 'wrap'], $array);
+        }
+
+        return new self($array);
+    }
+
+    /**
+     * Inverse of wrap(): peel Content wrappers back to their raw Statamic
+     * sources so values can be handed to Statamic modifiers/filters, which
+     * predate (and don't understand) the Content wrapper.
+     */
+    public static function unwrap(mixed $value): mixed
+    {
+        if ($value instanceof Content) {
+            return $value->source();
+        }
+        if (is_array($value)) {
+            return array_map([static::class, 'unwrap'], $value);
+        }
+
+        return $value;
     }
 }

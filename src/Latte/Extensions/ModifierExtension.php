@@ -2,7 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Extensions;
 
-use Daun\StatamicLatte\Data\Normalizer;
+use Daun\StatamicLatte\Data\Content;
 use Illuminate\Support\Collection;
 use Latte\Engine;
 use Latte\Essential\CoreExtension;
@@ -49,8 +49,8 @@ class ModifierExtension extends Extension
     {
         // Peel Content wrappers back to raw Statamic data before handing off
         // to modifiers, which expect plain values/arrays/augmentables.
-        $value = Normalizer::unwrap($value);
-        $args = array_map([Normalizer::class, 'unwrap'], $args);
+        $value = Content::unwrap($value);
+        $args = array_map([Content::class, 'unwrap'], $args);
 
         return ($this->loader->load($name))($value, $args, []);
     }

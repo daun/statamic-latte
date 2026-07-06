@@ -14,37 +14,37 @@ function nestedEntry()
     return Entry::query()->where('collection', 'pages')->where('slug', 'testable-nested')->first();
 }
 
-describe('normalizer', function () {
-    test('normalizes a single entry into a Content object', function () {
+describe('content wrap', function () {
+    test('wraps a single entry into a Content object', function () {
         $entry = testEntry();
         expect($entry)->not->toBeNull();
 
-        $content = Normalizer::normalize($entry);
+        $content = Content::wrap($entry);
         expect($content)->toBeInstanceOf(Content::class);
     });
 
     test('augments only accessed keys lazily via property syntax', function () {
-        $content = Normalizer::normalize(testEntry());
+        $content = Content::wrap(testEntry());
 
         expect($content->title)->toBe('Testable');
         expect((string) $content->slug)->toBe('testable');
     });
 
     test('supports both -> and [] access', function () {
-        $content = Normalizer::normalize(testEntry());
+        $content = Content::wrap(testEntry());
 
         expect($content->title)->toBe($content['title']);
     });
 
     test('works with isset for missing and present keys', function () {
-        $content = Normalizer::normalize(testEntry());
+        $content = Content::wrap(testEntry());
 
         expect(isset($content->title))->toBeTrue();
         expect(isset($content->nonexistent_field_xyz))->toBeFalse();
     });
 
-    test('normalizes a query result into a plain array of Content objects', function () {
-        $results = Normalizer::normalize(Entry::query()->where('collection', 'pages')->get());
+    test('wraps a query result into a plain array of Content objects', function () {
+        $results = Content::wrap(Entry::query()->where('collection', 'pages')->get());
 
         expect($results)->toBeArray();
         expect($results)->each->toBeInstanceOf(Content::class);
@@ -64,7 +64,7 @@ describe('normalizer', function () {
 
     test('chains Content -> Content through a nested entries-field relation', function () {
         $child = Entry::query()->where('collection', 'pages')->where('slug', 'testable-child')->first();
-        $content = Normalizer::normalize($child);
+        $content = Content::wrap($child);
 
         expect($content->title)->toBe('Testable Child');
         // related_page is an entries field (max_items: 1) -> single related Entry
@@ -98,7 +98,7 @@ describe('normalizer', function () {
     });
 
     test('resolves a nested group object and grid array of objects via -> (forward)', function () {
-        $page = Normalizer::normalize(nestedEntry());
+        $page = Content::wrap(nestedEntry());
 
         // group -> Content (keyed object)
         expect($page->meta)->toBeInstanceOf(Content::class);
@@ -129,7 +129,7 @@ describe('normalizer', function () {
 
     test('exposes a single keyed Content tag result as $value, not looped', function () {
         // {s:..} over an object-shaped result should not iterate its fields.
-        $content = Normalizer::normalize(['title' => 'Solo', 'body' => 'B']);
+        $content = Content::wrap(['title' => 'Solo', 'body' => 'B']);
         expect($content)->toBeInstanceOf(Content::class);
         // Mirrors TagNode's loop guard: Content is excluded from iteration.
         expect(is_iterable($content) && ! $content instanceof Content)->toBeFalse();
@@ -144,7 +144,7 @@ describe('normalizer', function () {
 
     test('augments only the accessed field, not the whole entry (lazy)', function () {
         $entry = testEntry();
-        $content = Normalizer::normalize($entry);
+        $content = Content::wrap($entry);
 
         // Touch only title.
         $content->title;
@@ -153,5 +153,26 @@ describe('normalizer', function () {
         $cache->setAccessible(true);
 
         expect(array_keys($cache->getValue($content)))->toBe(['title']);
+    });
+});
+
+describe('deprecated Normalizer shim', function () {
+    test('Normalizer::normalize delegates to Content::wrap', function () {
+        $content = Normalizer::normalize(testEntry());
+        expect($content)->toBeInstanceOf(Content::class);
+        expect($content->title)->toBe('Testable');
+    });
+
+    test('Normalizer::data delegates to Content::wrapAll', function () {
+        $data = Normalizer::data(['page' => testEntry(), 'n' => 5]);
+        expect($data['page'])->toBeInstanceOf(Content::class);
+        expect($data['n'])->toBe(5);
+    });
+
+    test('Normalizer::unwrap delegates to Content::unwrap', function () {
+        $entry = testEntry();
+        $content = Content::wrap($entry);
+        expect(Normalizer::unwrap($content))->toBe($entry);
+        expect(Normalizer::unwrap(['x' => 1]))->toBe(['x' => 1]);
     });
 });

@@ -2,7 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte;
 
-use Daun\StatamicLatte\Data\Normalizer;
+use Daun\StatamicLatte\Data\Content;
 use Daun\StatamicLatte\Latte\Support\Sections;
 use Miko\LaravelLatte\LatteEngine;
 
@@ -22,7 +22,7 @@ class NormalizingEngine extends LatteEngine
         Sections::beginRender();
 
         try {
-            return Sections::resolve(parent::get($path, Normalizer::data($data)));
+            return Sections::resolve(parent::get($path, Content::wrapAll($data)));
         } finally {
             Sections::endRender();
         }
