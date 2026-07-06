@@ -4,12 +4,8 @@ namespace Daun\StatamicLatte\Data;
 
 use ArrayAccess;
 use Statamic\Facades\Compare;
-use Statamic\Fields\ArrayableString;
-use Statamic\Fields\LabeledValue;
-use Statamic\Fields\Value;
-use Statamic\Fields\Values;
-use Statamic\Modifiers\Modify;
-use Statamic\Tags\FluentTag;
+
+use function Statamic\View\Blade\value as statamic_value;
 
 /**
  * Resolve Statamic values down to their actual final value.
@@ -27,27 +23,19 @@ class Resolver
     public static function actual(...$values): mixed
     {
         foreach ($values as $value) {
-            if ($value instanceof Values) {
-                $value = $value->all();
-            }
-            if ($value instanceof Value) {
-                $value = $value->value();
-            }
-            if ($value instanceof LabeledValue) {
-                $value = $value->value();
-            }
-            if ($value instanceof ArrayableString) {
-                $value = $value->__toString();
-            }
-            if (Compare::isQueryBuilder($value)) {
-                $value = $value->get();
-            }
-            if ($value instanceof FluentTag) {
-                $value = static::actual($value->fetch());
-            }
-            if ($value instanceof Modify) {
-                $value = static::actual($value->fetch());
-            }
+            // Delegate wrapper peeling to Statamic core so future wrapper types
+            // are handled upstream for free. Loop until stable because one
+            // unwrap can expose another wrapper (e.g. a Value whose augmented
+            // value is an ArrayableString). Statamic's helper does not resolve
+            // query builders, so we keep that step ourselves.
+            do {
+                $previous = $value;
+                $value = statamic_value($value);
+                if (Compare::isQueryBuilder($value)) {
+                    $value = $value->get();
+                }
+            } while ($value !== $previous && (is_object($previous) || is_object($value)));
+
             if (isset($value)) {
                 return $value;
             }

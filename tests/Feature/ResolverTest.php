@@ -24,6 +24,12 @@ describe('resolver', function () {
         expect(Resolver::actual(new ArrayableString('bar', [])))->toBe('bar');
     });
 
+    test('loops until stable when one unwrap exposes another wrapper', function () {
+        // A Value whose augmented value is itself an ArrayableString: Statamic's
+        // single-pass helper would return the ArrayableString; the loop peels it.
+        expect(Resolver::actual(new Value(fn () => new ArrayableString('x', []))))->toBe('x');
+    });
+
     test('returns the first non-null value', function () {
         expect(Resolver::actual(null, null, 'third'))->toBe('third');
     });
