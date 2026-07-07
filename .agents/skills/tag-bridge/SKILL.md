@@ -1,6 +1,6 @@
 ---
 name: tag-bridge
-description: The s: tag system that bridges Statamic tags into Latte templates — loader rewrites, TagNode compilation, runtime fetch/wrap, pagination, argument syntax. Use when adding/changing anything under src/Latte/Support/Tag*, src/Latte/Loaders/, src/Latte/Extensions/TagExtension.php, Nodes/TagNode.php, or when a {s:...} tag, (s:...) expression, or s() call misbehaves (wrong params, no output, fields iterated instead of entries, missing paginator).
+description: "The s: tag system that bridges Statamic tags into Latte templates — loader rewrites, TagNode compilation, runtime fetch/wrap, pagination, argument syntax. Use when adding/changing anything under src/Latte/Support/Tag*, src/Latte/Loaders/, src/Latte/Extensions/TagExtension.php, Nodes/TagNode.php, or when a {s:...} tag, (s:...) expression, or s() call misbehaves (wrong params, no output, fields iterated instead of entries, missing paginator)."
 ---
 
 # tag-bridge: the Statamic `s:` tag system

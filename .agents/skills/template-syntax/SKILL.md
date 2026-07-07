@@ -1,6 +1,6 @@
 ---
 name: template-syntax
-description: The user-facing contract of .latte templates in this addon — data access, s: tag spellings, arguments, modifiers, forms, antlers blocks, layouts, smart attributes. Load when answering "why doesn't my template work", writing example .latte templates or docs, or checking whether a template construct is supported.
+description: "The user-facing contract of .latte templates in this addon — data access, s: tag spellings, arguments, modifiers, forms, antlers blocks, layouts, smart attributes. Load when answering \"why doesn't my template work\", writing example .latte templates or docs, or checking whether a template construct is supported."
 ---
 
 # Template syntax: what .latte authors can write and what it means
