@@ -21,7 +21,7 @@ All built-in filters and expression functions in Latte 3.x, with signatures. Fil
 {$title|lower|capitalize}           {* chain, left to right *}
 {$text|truncate: 20, ''}            {* args: colon first, then commas (colons also OK) *}
 {$date|localDate: format: yM}       {* named args *}
-{$title?|upper}                     {* nullsafe pipe: whole chain skipped when value is null *}
+{$title?|upper}                     {* nullsafe pipe (3.1+): whole chain skipped when value is null *}
 {var $x = ($title|upper)}           {* inside expressions: parentheses required *}
 {block|spaceless} ... {/block}      {* filters on blocks / capture / include output *}
 ```
@@ -79,9 +79,9 @@ Function-call form also works: `|truncate(a: 10)`. Unknown filters are compile e
 | `group` | `(by)` — key, or closure; preserves keys and order: `{foreach ($items\|group: categoryId) as $catId => $items}` |
 | `filter` | `(predicate)` — keep matching items, keys preserved |
 | `sort` | `(comparison?, by?, byKey?)` — keys preserved, locale-aware for strings. `($items\|sort: by: 'name')`, `($names\|sort: byKey: true)`, custom `($a\|sort: fn($x, $y) => $y <=> $x)`. `by` and `byKey` cannot combine |
-| `column` | `(columnKey, indexKey = null)` — extract column from 2D array / object list |
+| `column` | `(columnKey, indexKey = null)` — extract column from 2D array / object list *(3.1.3+)* |
 | `implode` / `join` | `(glue = '')` |
-| `commas` | `(lastGlue = null)` — `{$items\|commas: ' and '}` → `a, b and c` |
+| `commas` | `(lastGlue = null)` — `{$items\|commas: ' and '}` → `a, b and c` *(3.1.3+)* |
 | `explode` / `split` | `(separator = '')` — empty separator splits to characters |
 | `first` / `last` / `random` | element of array or char of string |
 | `reverse`, `slice`, `limit`, `length` | also work on arrays/iterators (above) |
@@ -89,7 +89,7 @@ Function-call form also works: `|truncate(a: 10)`. Unknown filters are compile e
 ## HTML attribute filters
 
 - `toggle` — attribute presence from a boolean; **only inside HTML attributes**: `<div uk-grid={$isGrid|toggle}>`.
-- `json` *(3.1-dev)* — attribute-only modifier, must be **last** in the chain of a dynamic HTML attribute: `<meta content={$arr|json}>` → `content='{"a":1}'` (smart quoting). Overrides the special class/aria/data array handling. Anywhere else (text, `<script>`, mid-chain) it's an unknown-filter error.
+- `json` *(unreleased — master post-3.1.4)* — attribute-only modifier, must be **last** in the chain of a dynamic HTML attribute: `<meta content={$arr|json}>` → `content='{"a":1}'` (smart quoting). Overrides the special class/aria/data array handling. Anywhere else (text, `<script>`, mid-chain) it's an unknown-filter error.
 - `dataStream` — `(mimetype = auto)` — converts content to a base64 `data:` URI; requires ext-fileinfo.
 - `accept` — 3.0→3.1 migration no-op, ignore.
 

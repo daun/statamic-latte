@@ -1,20 +1,22 @@
 ---
-name: writing-latte-templates
-description: Author and edit Latte templates (.latte files) — the PHP templating engine by Nette with context-aware escaping. Covers tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, answering Latte/Nette templating questions, or integrating Latte into PHP code.
+name: latte-templates
+description: Reference for Latte, the PHP templating engine by Nette (.latte files) with context-aware escaping — tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, fixing Latte compile errors, choosing tags or filters, answering Latte/Nette templating questions, or integrating and configuring Latte from PHP. Covers upstream Latte only, not CMS- or framework-specific layers built on top of it (Statamic, Nette Application, Symfony bridges).
 ---
 
 # Writing Latte Templates
 
-Latte is a PHP templating engine (latte.nette.org). Templates compile to plain PHP and are cached. Its defining feature is **context-aware escaping**: Latte parses the HTML and escapes every printed value according to where it appears (HTML text, attribute, `<script>`, CSS, URL...). You never escape manually — write `{$var}` anywhere and it is safe. Expressions inside tags are PHP (a large subset), not a new language.
+Latte is a PHP templating engine (latte.nette.org). Templates compile to plain PHP and are cached. Its defining feature is **context-aware escaping**: Latte parses the HTML and escapes every printed value according to where it appears (HTML text, attribute, `<script>`, CSS, URL...). Never escape manually — write `{$var}` anywhere and it is safe. Expressions inside tags are PHP (a large subset), not a new language.
 
-This file covers the essentials. Details are one level deep:
+This file covers what every template touch needs. Load depth by lookup need:
 
-- **[tags.md](tags.md)** — complete reference for every tag and n:attribute (conditions, loops, variables, capture, try, n:class/n:attr/n:tag, translation, misc)
-- **[filters.md](filters.md)** — all built-in filters with signatures, plus functions usable in expressions
-- **[inheritance.md](inheritance.md)** — blocks, `{layout}`, `{include}`, `{import}`, `{embed}`, `{define}`, and the variable-scoping rules between them
-- **[expressions.md](expressions.md)** — the expression language: allowed/forbidden PHP, syntactic sugar, filter syntax details
-- **[escaping.md](escaping.md)** — how escaping works per context, printing into attributes, `<script>`/`<style>` behavior, URL sanitization, whitespace handling
-- **[php-api.md](php-api.md)** — `Latte\Engine` setup, custom filters/functions, sandbox, linter, type system
+| Open when you need to... | Read |
+|--------------------------|------|
+| look up any tag or n:attribute — conditions, loops, `$iterator`, variables, capture, try, n:class/n:attr/n:tag, translation, misc | [references/tags.md](references/tags.md) |
+| look up a filter or expression function — signature, args, aliases, requirements | [references/filters.md](references/filters.md) |
+| compose templates — blocks, `{layout}`, `{include}`, `{import}`, `{embed}`, `{define}`, or debug variable visibility between them | [references/inheritance.md](references/inheritance.md) |
+| check what PHP is allowed inside `{...}`, bare-string rules, filter syntax edge cases | [references/expressions.md](references/expressions.md) |
+| understand escaping per context, attribute type semantics, URL sanitization, whitespace handling | [references/escaping.md](references/escaping.md) |
+| set up `Latte\Engine`, add filters/functions/extensions, sandbox untrusted templates, lint, debug | [references/php-api.md](references/php-api.md) |
 
 ## Syntax fundamentals
 
@@ -63,12 +65,12 @@ One delimiter for everything: `{...}`. Control tags and printing use the same br
 ```
 
 - Unquoted attributes are fine — Latte adds quotes and escapes: `<img src={$file} alt={$alt}>`.
-- Attribute values react to types: `null`/`false` **omit the attribute entirely**, `true` renders a bare attribute, arrays are smart (`class={[btn, active => $isActive]}`, `style={[color: red]}`, JSON in `data-*`). Boolean attributes (`checked`, `disabled`...) follow truthiness.
+- Attribute values react to types (3.1+): `null`/`false` **omit the attribute entirely**, `true` renders a bare attribute, arrays are smart (`class={[btn, active => $isActive]}`, `style={[color: red]}`, JSON in `data-*`). Boolean attributes (`checked`, `disabled`...) follow truthiness.
 - URL attributes (`href`, `src`, `action`, `formaction`) are sanitized: `javascript:` URLs become `""`. Override with `|nocheck`; opt other attributes in with `|checkUrl`.
 - `{$trusted|noescape}` disables escaping — XSS risk, only for trusted HTML. From PHP, wrap trusted HTML in `Latte\Runtime\Html` instead.
-- Nullsafe filter pipe: `{$title?|upper}` — skips the filter chain and returns null when the value is null (pairs well with attribute omission).
+- Nullsafe filter pipe (3.1+): `{$title?|upper}` — skips the filter chain and returns null when the value is null (pairs well with attribute omission).
 
-See [escaping.md](escaping.md) for per-context details, `<script type=...>` variants, and attribute semantics.
+See [references/escaping.md](references/escaping.md) for per-context details, `<script type=...>` variants, and attribute semantics.
 
 ## Essential tags
 
@@ -93,7 +95,7 @@ Loops — `{foreach}` provides `$iterator` and an `{else}` branch for empty coll
 {/foreach}
 ```
 
-`$iterator`: `->counter` (1-based), `->counter0`, `->first`, `->last`, `->odd`, `->even`, `->nextValue`, `->nextKey`, `->parent` (outer loop). Loop control: `{breakIf $c}`, `{continueIf $c}`, `{skipIf $c}` (continue without counting), `{exitIf $c}` (end template/block early). Also `{for}`, `{while}` (post-test form: `{while}...{/while $cond}`), `{iterateWhile}` for grouping consecutive items.
+`$iterator` carries `->counter` (1-based), `->first`, `->last`, `->odd`, `->even`, `->parent` and more; loop control is `{breakIf}`, `{continueIf}`, `{skipIf}`, `{exitIf}`; other loops are `{for}`, `{while}`, `{iterateWhile}` — all detailed in [references/tags.md](references/tags.md).
 
 Variables:
 
@@ -104,7 +106,7 @@ Variables:
 {do $counter++}                     {* evaluate, print nothing *}
 ```
 
-Structure (details in [inheritance.md](inheritance.md)):
+Structure (details in [references/inheritance.md](references/inheritance.md)):
 
 ```latte
 {layout 'layout.latte'}             {* this template fills the layout's blocks *}
@@ -131,7 +133,7 @@ HTML helpers (n:attributes only): `n:class="$active ? active, list-item"`, `n:at
 
 ## Expressions — PHP with sugar
 
-Inside tags you write PHP expressions. Key differences ([expressions.md](expressions.md) has the full list):
+Inside tags you write PHP expressions. Key differences ([references/expressions.md](references/expressions.md) has the full list):
 
 - **Bare words are strings**: `{include foo}`, `[a, b-c]` ≡ `['a', 'b-c']`. But ALL_CAPS words are constants, and keywords (`true`, `in`, `default`...) can't be bare strings. Global constants need `\`: `{if \PROJECT_ID === 1}`.
 - **Short ternary**: `{$stock ? 'In stock'}` (missing else = nothing).
@@ -161,10 +163,10 @@ Inside tags you write PHP expressions. Key differences ([expressions.md](express
 
 ```php
 $latte = new Latte\Engine;
-$latte->setTempDirectory('/path/to/cache');     // newer API name: setCacheDirectory()
+$latte->setTempDirectory('/path/to/cache');     // renamed setCacheDirectory() in 3.1.2/3.0.26
 $latte->addFilter('shortify', fn(string $s) => mb_substr($s, 0, 10));
 $latte->addFunction('isWeekend', fn(DateTimeInterface $d) => $d->format('N') >= 6);
 $latte->render('template.latte', ['name' => 'John']);   // or renderToString()
 ```
 
-Engine configuration, typed parameter classes, `{templateType}`, sandbox for untrusted templates, and the `latte-lint` CLI are covered in [php-api.md](php-api.md).
+Engine configuration, typed parameter classes, `{templateType}`, sandbox for untrusted templates, and the `latte-lint` CLI are covered in [references/php-api.md](references/php-api.md).

@@ -135,7 +135,7 @@ Combines include (pass vars) with inheritance (override the embedded file's bloc
 ```
 
 - Blocks inside `{embed}` form an **isolated layer** — no collision with same-named outer blocks. From inside you can `{include}`: blocks defined in the embed, the embedded file's non-local blocks, the main template's **local** blocks, and imported blocks — NOT ordinary outer blocks.
-- Only `{block}` / `{import}` belong directly inside `{embed}`. *(3.1-dev feature: loose content inside `{embed}` becomes the embedded file's `{block default}`; combining loose content with an explicit `{block default}` is a compile error.)*
+- Only `{block}` / `{import}` belong directly inside `{embed}`. *(Unreleased — master post-3.1.4: loose content inside `{embed}` becomes the embedded file's `{block default}`; combining loose content with an explicit `{block default}` is a compile error.)*
 - Embedded files see only globals + passed vars. Overriding blocks see the caller's variables, but the embed file's own `{var}`s (run before the block) win over caller values; explicitly passed embed args beat both.
 - Embed a `{define}`d **block** instead of a file: `{embed collapsible, ...}` — then outer-layer blocks REMAIN accessible inside. Disambiguate dynamics: `{embed block $name}` / `{embed file $name}`.
 - Embeds nest; an embedded file may itself `{extends}` a layout. Self-closing `{embed 'f.latte'/}` renders it with fallbacks.

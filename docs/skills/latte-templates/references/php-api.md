@@ -1,6 +1,6 @@
 # Latte from PHP: Engine, Extending, Sandbox, Linter, Types
 
-Reference for integrating and configuring Latte 3.x (PHP 8.2–8.5).
+Reference for integrating and configuring Latte 3.x. Latte 3.1 (current stable line) requires PHP 8.2–8.5; the parallel 3.0.x line supports PHP 8.0+.
 
 ## Contents
 - Engine setup and rendering
@@ -17,7 +17,7 @@ Reference for integrating and configuring Latte 3.x (PHP 8.2–8.5).
 
 ```php
 $latte = new Latte\Engine;
-$latte->setTempDirectory('/path/to/cache');   // compiled-template cache; newer releases: setCacheDirectory()
+$latte->setTempDirectory('/path/to/cache');   // compiled-template cache; renamed setCacheDirectory() in 3.1.2/3.0.26
 
 $latte->render('template.latte', $params);              // to output
 $html = $latte->renderToString('template.latte', $params);
@@ -116,12 +116,12 @@ $latte->enablePhpLinter('/usr/bin/php'); // php -l on compiled output during com
 $latte->addProvider('coreParentFinder', fn(Latte\Runtime\Template $t) => 'layout.latte'); // automatic layout lookup; templates opt out via {layout none}
 ```
 
-`Latte\Feature` flags via `$latte->setFeature(...)`:
+`Latte\Feature` flags via `$latte->setFeature(...)` / `hasFeature(...)` (enum introduced in 3.1.2/3.0.26):
 
 - `StrictTypes` — `declare(strict_types=1)` in compiled code (default ON since 3.1).
 - `StrictParsing` — all unclosed/mismatched HTML elements are compile errors; `$this` disabled.
-- `ScopedLoopVariables` — foreach variables restored/unset after the loop.
-- `Dedent` — strip structural indentation inside paired tags.
+- `ScopedLoopVariables` *(3.1.3+)* — foreach variables restored/unset after the loop.
+- `Dedent` *(3.1.3+)* — strip structural indentation inside paired tags.
 - `MigrationWarnings` — 3.0→3.1 attribute-behavior warnings (`|accept` filter silences per-value).
 
 ## Sandbox for untrusted templates
@@ -150,9 +150,11 @@ $latte->setPolicy($policy);
 vendor/bin/latte-lint <path>          # flags: --strict, --debug
 ```
 
-Checks per file: (1) syntax errors → ERROR; (2) first-class checks → WARNING: unknown filters/functions/classes/methods/class constants/static properties/global constants (SymbolCheck), and statically-named template paths in `{include}/{import}/{layout}/{embed}/{sandbox}/{include ... from}` that don't resolve ("Missing template 'x.latte'"; dynamic names skipped) — TemplateReferenceCheck; (3) PHP lint of compiled output → ERROR. Missing *blocks* in existing files are not reported.
+Compiles every template in a directory and reports syntax/compile errors and deprecation warnings.
 
-With custom extensions, build your own runner (`Latte\Tools\Linter` is a BC alias of the newer `Latte\Linting` namespace):
+*(Unreleased — master post-3.1.4: the linter moves to a `Latte\Linting` namespace with `Latte\Tools\Linter` kept as a BC alias, and gains first-class WARNING checks: unknown filters/functions/classes/methods/class constants/static properties/global constants (SymbolCheck), and statically-named template paths in `{include}/{import}/{layout}/{embed}/{sandbox}/{include ... from}` that don't resolve (TemplateReferenceCheck; dynamic names skipped, missing *blocks* not reported), plus a PHP lint of compiled output.)*
+
+With custom extensions, build your own runner with `Latte\Tools\Linter`:
 
 ```php
 $linter = new Latte\Tools\Linter;

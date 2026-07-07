@@ -31,7 +31,7 @@ Self-closing slash on a print tag (`{time() /}`) is a compile error.
 ```latte
 {if $cond} ... {elseif $c2} ... {else} ... {/if}
 ```
-n:attribute forms: `n:if`, `n:inner-if`, `n:tag-if`; sibling chain `n:if` → `n:elseif` → `n:else`.
+n:attribute forms: `n:if`, `n:inner-if`, `n:tag-if`; sibling chain `n:if` → `n:elseif` (3.1+) → `n:else`.
 
 **Deferred condition** — condition in the closing tag; the content is rendered to a buffer first, printed only if the condition is true afterwards. `{else}` allowed, `{elseif}` not:
 
