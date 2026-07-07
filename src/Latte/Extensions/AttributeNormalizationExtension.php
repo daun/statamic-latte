@@ -14,10 +14,10 @@ use Latte\Extension;
 /**
  * Teaches Latte's native {n:attr} to accept Statamic Content objects.
  *
- * Normalizer maps keyed arrays to a Content object so templates reach them with
- * `->`. Latte's n:attr runtime does an is_array() check, so a Content is
+ * Content::wrap maps keyed arrays to a Content object so templates reach them
+ * with `->`. Latte's n:attr runtime does an is_array() check, so a Content is
  * silently dropped — `<div n:attr="$attrs">` would render no attributes. This
- * pass wraps every n:attr argument in Normalizer::unwrap(), peeling Content
+ * pass wraps every n:attr argument in Content::unwrap(), peeling Content
  * back to a plain array at that boundary. unwrap() is a no-op for scalars and
  * strings, so the keyed forms (`n:attr="href: …, class: …"`) are unaffected.
  */
@@ -46,7 +46,7 @@ class AttributeNormalizationExtension extends Extension
     protected static function unwrap(ExpressionNode $value): AuxiliaryNode
     {
         return new AuxiliaryNode(
-            fn (PrintContext $context, ExpressionNode $inner): string => '\Daun\StatamicLatte\Data\Normalizer::unwrap('.$inner->print($context).')',
+            fn (PrintContext $context, ExpressionNode $inner): string => '\Daun\StatamicLatte\Data\Content::unwrap('.$inner->print($context).')',
             [$value],
         );
     }

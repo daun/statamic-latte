@@ -4,6 +4,8 @@ use Daun\StatamicLatte\Data\Resolver;
 use Statamic\Fields\ArrayableString;
 use Statamic\Fields\LabeledValue;
 use Statamic\Fields\Value;
+use Statamic\Statamic;
+use Statamic\Tags\FluentTag;
 
 describe('resolver', function () {
     test('returns plain scalars untouched', function () {
@@ -22,6 +24,25 @@ describe('resolver', function () {
 
     test('stringifies an ArrayableString', function () {
         expect(Resolver::actual(new ArrayableString('bar', [])))->toBe('bar');
+    });
+
+    test('loops until stable when one unwrap exposes another wrapper', function () {
+        // A Value whose augmented value is itself an ArrayableString: Statamic's
+        // single-pass helper would return the ArrayableString; the loop peels it.
+        expect(Resolver::actual(new Value(fn () => new ArrayableString('x', []))))->toBe('x');
+    });
+
+    test('resolves a Modify chain to its final value', function () {
+        // statamic_value() recurses on Modify->fetch(); exercises that path.
+        expect(Resolver::actual(Statamic::modify('hello')->upper()))->toBe('HELLO');
+    });
+
+    test('resolves a FluentTag to its fetched output', function () {
+        // FluentTag shares the same fetch-recursion path as Modify: the tag is
+        // unwrapped to its fetched result (an entries collection), not left wrapped.
+        $result = Resolver::actual(Statamic::tag('collection:pages'));
+        expect($result)->not->toBeInstanceOf(FluentTag::class);
+        expect(count($result))->toBeGreaterThan(0);
     });
 
     test('returns the first non-null value', function () {

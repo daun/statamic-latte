@@ -2,7 +2,7 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
-use Daun\StatamicLatte\Data\Normalizer;
+use Daun\StatamicLatte\Data\Content;
 use Daun\StatamicLatte\Data\Resolver;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Str;
@@ -114,7 +114,7 @@ class Tags
 
         // Normalize tag output to the same Content/array shapes as view data,
         // so {foreach s('collection:pages') as $entry}{$entry->title} works.
-        return Normalizer::normalize($result);
+        return Content::wrap($result);
     }
 
     /**
@@ -132,7 +132,7 @@ class Tags
         }
 
         // Drill into Content / augmented wrappers, then retry.
-        return self::printableValue(Resolver::actual(Normalizer::unwrap($result))) ?? '';
+        return self::printableValue(Resolver::actual(Content::unwrap($result))) ?? '';
     }
 
     /**
@@ -177,7 +177,7 @@ class Tags
     protected static function normalizePaginator(AbstractPaginator $paginator): AbstractPaginator
     {
         $items = $paginator->getCollection()->map(
-            fn ($item) => Normalizer::normalize($item)
+            fn ($item) => Content::wrap($item)
         );
 
         return $paginator->setCollection($items);

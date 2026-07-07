@@ -42,7 +42,7 @@ final class AntlersNode extends StatementNode
         // wrappers back to their raw Statamic sources — Antlers does its own
         // augmentation and can't traverse our wrappers.
         return $context->format(
-            'echo view(%dump, \Daun\StatamicLatte\Data\Normalizer::unwrap(["__layout_parent" => $this->getName()] + get_defined_vars()))->render() %line;',
+            'echo view(%dump, \Daun\StatamicLatte\Data\Content::unwrap(["__layout_parent" => $this->getName()] + get_defined_vars()))->render() %line;',
             $this->saveContentToView(),
             $this->position
         );

@@ -10,7 +10,7 @@ use Illuminate\View\ViewFinderInterface;
 use Illuminate\View\ViewName;
 use Latte\Loader;
 
-class BladeStyleLoader implements Loader
+class LaravelViewLoader implements Loader
 {
     public function __construct(
         protected Factory $view
