@@ -1,6 +1,6 @@
 ---
 name: latte-templates
-description: Reference for Latte, the PHP templating engine by Nette (.latte files) with context-aware escaping — tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, fixing Latte compile errors, choosing tags or filters, answering Latte/Nette templating questions, or integrating and configuring Latte from PHP. Covers upstream Latte only, not framework-specific layers built on top of it (Nette Application, Symfony bridges, Laravel integration, etc).
+description: Writing templates in Latte, the PHP templating engine by Nette (.latte files) with context-aware escaping. Covers tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, fixing Latte compile errors, choosing tags or filters, answering Latte/Nette templating questions, or integrating and configuring Latte from PHP. Covers upstream Latte only, not framework-specific layers built on top of it (Nette Application, Symfony bridges, Laravel integration, etc).
 ---
 
 # Writing Latte Templates

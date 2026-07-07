@@ -24,7 +24,7 @@ Complete reference for calling [Statamic tags](https://statamic.dev/tags) from `
 {s:collection:count in: pages /}                 {* tag METHOD via second colon *}
 {s:collection:pages sort: title}                 {* wildcard methods work too *}
     {$value->title}
-{/s:collection:pages}                            {* close with the FULL name *}
+{/s:collection:pages}                            {* full or base name both close it: {/s:collection} works too *}
 ```
 
 - A single **non-closed** `{s:link to: "x"}` does not compile (Latte can't register a name as both single and paired). Self-close or pair — no exceptions.
