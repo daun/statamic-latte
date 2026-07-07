@@ -1,11 +1,11 @@
 ---
 name: latte-templates
-description: Reference for Latte, the PHP templating engine by Nette (.latte files) with context-aware escaping — tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, fixing Latte compile errors, choosing tags or filters, answering Latte/Nette templating questions, or integrating and configuring Latte from PHP. Covers upstream Latte only, not CMS- or framework-specific layers built on top of it (Statamic, Nette Application, Symfony bridges).
+description: Reference for Latte, the PHP templating engine by Nette (.latte files) with context-aware escaping — tag syntax, n:attributes, filters, blocks and template inheritance, the expression language, and the Latte\Engine PHP API. Use when writing, reviewing, or debugging .latte templates, fixing Latte compile errors, choosing tags or filters, answering Latte/Nette templating questions, or integrating and configuring Latte from PHP. Covers upstream Latte only, not framework-specific layers built on top of it (Nette Application, Symfony bridges, Laravel integration, etc).
 ---
 
 # Writing Latte Templates
 
-Latte is a PHP templating engine (latte.nette.org). Templates compile to plain PHP and are cached. Its defining feature is **context-aware escaping**: Latte parses the HTML and escapes every printed value according to where it appears (HTML text, attribute, `<script>`, CSS, URL...). Never escape manually — write `{$var}` anywhere and it is safe. Expressions inside tags are PHP (a large subset), not a new language.
+Latte is a PHP templating engine (latte.nette.org); this skill covers Latte 3.1. Templates compile to plain PHP and are cached. Its defining feature is **context-aware escaping**: Latte parses the HTML and escapes every printed value according to where it appears (HTML text, attribute, `<script>`, CSS, URL...). Never escape manually — write `{$var}` anywhere and it is safe. Expressions inside tags are PHP (a large subset), not a new language.
 
 This file covers what every template touch needs. Load depth by lookup need:
 
@@ -65,10 +65,10 @@ One delimiter for everything: `{...}`. Control tags and printing use the same br
 ```
 
 - Unquoted attributes are fine — Latte adds quotes and escapes: `<img src={$file} alt={$alt}>`.
-- Attribute values react to types (3.1+): `null`/`false` **omit the attribute entirely**, `true` renders a bare attribute, arrays are smart (`class={[btn, active => $isActive]}`, `style={[color: red]}`, JSON in `data-*`). Boolean attributes (`checked`, `disabled`...) follow truthiness.
+- Attribute values react to types: `null`/`false` **omit the attribute entirely**, `true` renders a bare attribute, arrays are smart (`class={[btn, active => $isActive]}`, `style={[color: red]}`, JSON in `data-*`). Boolean attributes (`checked`, `disabled`...) follow truthiness.
 - URL attributes (`href`, `src`, `action`, `formaction`) are sanitized: `javascript:` URLs become `""`. Override with `|nocheck`; opt other attributes in with `|checkUrl`.
 - `{$trusted|noescape}` disables escaping — XSS risk, only for trusted HTML. From PHP, wrap trusted HTML in `Latte\Runtime\Html` instead.
-- Nullsafe filter pipe (3.1+): `{$title?|upper}` — skips the filter chain and returns null when the value is null (pairs well with attribute omission).
+- Nullsafe filter pipe: `{$title?|upper}` — skips the filter chain and returns null when the value is null (pairs well with attribute omission).
 
 See [references/escaping.md](references/escaping.md) for per-context details, `<script type=...>` variants, and attribute semantics.
 
@@ -163,7 +163,7 @@ Inside tags you write PHP expressions. Key differences ([references/expressions.
 
 ```php
 $latte = new Latte\Engine;
-$latte->setTempDirectory('/path/to/cache');     // renamed setCacheDirectory() in 3.1.2/3.0.26
+$latte->setCacheDirectory('/path/to/cache');    // compiled-template cache (older name: setTempDirectory())
 $latte->addFilter('shortify', fn(string $s) => mb_substr($s, 0, 10));
 $latte->addFunction('isWeekend', fn(DateTimeInterface $d) => $d->format('N') >= 6);
 $latte->render('template.latte', ['name' => 'John']);   // or renderToString()

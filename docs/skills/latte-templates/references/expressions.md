@@ -1,6 +1,6 @@
 # The Latte Expression Language
 
-What you can write inside `{...}` tags: PHP expressions plus Latte sugar, minus statements. Reference for Latte 3.x.
+What you can write inside `{...}` tags: PHP expressions plus Latte sugar, minus statements.
 
 ## Contents
 - Allowed PHP

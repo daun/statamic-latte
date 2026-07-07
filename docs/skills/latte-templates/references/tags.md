@@ -1,6 +1,6 @@
 # Latte Tag Reference
 
-Complete author-facing reference for Latte 3.x tags and n:attributes. Blocks/inheritance tags (`{block}`, `{define}`, `{include}`, `{layout}`, `{import}`, `{embed}`) are summarized here but detailed in [inheritance.md](inheritance.md).
+Complete author-facing reference for Latte tags and n:attributes. Blocks/inheritance tags (`{block}`, `{define}`, `{include}`, `{layout}`, `{import}`, `{embed}`) are summarized here but detailed in [inheritance.md](inheritance.md).
 
 ## Contents
 - Printing
@@ -31,7 +31,7 @@ Self-closing slash on a print tag (`{time() /}`) is a compile error.
 ```latte
 {if $cond} ... {elseif $c2} ... {else} ... {/if}
 ```
-n:attribute forms: `n:if`, `n:inner-if`, `n:tag-if`; sibling chain `n:if` → `n:elseif` (3.1+) → `n:else`.
+n:attribute forms: `n:if`, `n:inner-if`, `n:tag-if`; sibling chain `n:if` → `n:elseif` → `n:else`.
 
 **Deferred condition** — condition in the closing tag; the content is rendered to a buffer first, printed only if the condition is true afterwards. `{else}` allowed, `{elseif}` not:
 
@@ -180,7 +180,7 @@ Accepted type syntax includes nullable `?Foo`, unions, intersections, generics `
 ```latte
 <a n:class="$item->isActive() ? active, $iterator->first ? 'first main', list-item">
 ```
-Since Latte 3.1 a plain `class={[...]}` attribute has the same powers (arrays, key => bool).
+A plain `class={[...]}` attribute has the same powers (arrays, key => bool).
 
 `n:attr` — arbitrary attributes from `name: expr` pairs (or an array literal / variable). `null` drops the attribute, booleans control presence, arrays work for class/style:
 

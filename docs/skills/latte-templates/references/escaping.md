@@ -1,6 +1,6 @@
 # Context-Aware Escaping and HTML Handling
 
-How Latte prints values safely in every context, what it does to your HTML, and the whitespace rules. Reference for Latte 3.x.
+How Latte prints values safely in every context, what it does to your HTML, and the whitespace rules.
 
 ## Contents
 - The escaping model
@@ -69,7 +69,7 @@ When an attribute's whole value is one tag (`title={$x}` or via `n:attr`):
 | `data-*` | scalars stringified (`true` → `"true"`), null omitted, arrays → JSON (auto single-quoted) |
 | `on*` | quoted `onclick="{$x}"` JS-encodes; full-value unquoted prints plain string |
 
-- `|json` *(unreleased — master post-3.1.4)*: as the LAST modifier of a dynamic attribute, forces JSON with smart quoting and overrides class/aria/data special handling: `<div class={$list|json}>` → `class='["a","b"]'`.
+- `|json`: as the LAST modifier of a dynamic attribute, forces JSON with smart quoting and overrides class/aria/data special handling: `<div class={$list|json}>` → `class='["a","b"]'`.
 - In XML mode there are no boolean/special attributes: `true`/`false`/`null`/arrays all drop the attribute.
 - Partial values compose: `href="{$url}#anchor"`, `class="static {$dynamic}"`.
 
