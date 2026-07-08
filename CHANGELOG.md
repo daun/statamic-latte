@@ -1,35 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.0] - 2026-07-08
 
-### Performance
+- Support `<x-component>` syntax for both Latte and Blade partials
+- Defer augmentation of non-empty relatinship fields
 
-- Defer augmentation of non-empty relationship fields (entries, terms, assets,
-  users) until a template first uses them. Previously every relationship field
-  in the cascade ran its query and augmentation at render start whether or not
-  the template referenced it. Template-facing behavior is unchanged, including
-  `{if $related}` truthiness and `{foreach}`/`{$related|length}`.
-
-### Changed (internal)
-
-- Consolidated the data layer: `Normalizer` is **deprecated** in favor of the
-  static methods `Content::wrap()`, `Content::wrapAll()` and `Content::unwrap()`.
-  `Normalizer` remains as a delegating shim (to be removed in 3.0) so already
-  compiled templates keep working across the upgrade.
-- The `Content->unwrap()` **instance** escape hatch is renamed to
-  `Content->source()`; `Content::unwrap()` is now a static boundary helper.
-- `Resolver::actual()` now delegates wrapper peeling to Statamic core's
-  `Statamic\View\Blade\value()` helper, so future Statamic wrapper types are
-  handled automatically. A bare non-string-backed `ArrayableString` now resolves
-  via `->value()` instead of a string cast (string-backed fields are
-  unaffected).
-
-### Notes
-
-- `json_encode()` on a relationship field now emits the augmented entry data
-  rather than the empty objects the previous eager `Content` array produced.
-
-## [2.0.0] - 2024-03-09
+## [2.0.0] - 2026-06-14
 
 - Add support for Statamic 6
 - Drop support for Statamic 5 and below
@@ -66,7 +42,7 @@
 
 - Initial release
 
-[Unreleased]: https://github.com/daun/statamic-latte/compare/2.0.0...HEAD
+[2.1.0]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
 [2.0.0]: https://github.com/daun/statamic-latte/releases/tag/2.0.0
 [1.3.0]: https://github.com/daun/statamic-latte/releases/tag/1.3.0
 [1.2.1]: https://github.com/daun/statamic-latte/releases/tag/1.2.1
