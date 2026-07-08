@@ -1,0 +1,1 @@
+<div class="framed">@if(isset($title) && $title->isNotEmpty())<h1{{ $title->attributes }}>{{ $title }}</h1>@endif{{ $slot }}</div>

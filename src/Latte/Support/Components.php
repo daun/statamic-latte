@@ -2,31 +2,33 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
+use Daun\StatamicLatte\Components\Component as LatteComponent;
 use Daun\StatamicLatte\Data\Normalizer;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\View\AnonymousComponent;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Compilers\ComponentTagCompiler;
 use Illuminate\View\ComponentAttributeBag;
-use Miko\LaravelLatte\IComponent;
-use Miko\LaravelLatte\Runtime\Component;
+use Illuminate\View\ComponentSlot;
+use Illuminate\View\FileViewFinder;
 use ReflectionClass;
-use RuntimeException;
 use Throwable;
 
 /**
- * Runtime dispatcher for `<x-…>` components in Latte templates.
+ * Resolution + runtime helpers for `<x-…>` components in Latte templates.
  *
- * One notation, two destinations, decided at render time:
+ * One notation, two destinations, decided at COMPILE time by ComponentExtension:
  *
- *   1. A miko `IComponent` Latte component  → rendered via Component::generate().
- *   2. A Laravel/Statamic Blade component   → rendered via a thin Blade runtime
- *      (class or anonymous), modelled on Statamic's ComponentProxy but echoing
- *      our pre-rendered Latte slot string directly instead of re-parsing it as
- *      Antlers (which would mangle literal `{{ }}` / `@` in the output).
+ *   1. A Latte component template `components/<name>.latte`  → desugared into a
+ *      native `{embed}` + `{block}` subtree (see ComponentEmbed). Slots map to
+ *      blocks, so default-slot fallback and caller-scoped slot content come for
+ *      free. An optional backing {@see LatteComponent} class supplies extra data.
+ *   2. Otherwise a Laravel/Statamic Blade component  → a runtime ComponentNode
+ *      dispatch via {@see render()}, echoing our pre-rendered Latte slot string
+ *      directly instead of re-parsing it as Antlers (which would mangle literal
+ *      `{{ }}` / `@` in the output).
  *
- * When a name resolves to both, the Latte (IComponent) component wins.
+ * A Latte template always wins over a Blade component of the same name.
  */
 class Components
 {
@@ -43,35 +45,89 @@ class Components
     }
 
     /**
-     * Render a component by name. Decides Latte vs Blade at runtime.
+     * The view name of a component's Latte template, e.g. `alert` -> `components.alert`
+     * and `forms.field` -> `components.forms.field`.
+     */
+    public static function view(string $name): string
+    {
+        return 'components.'.$name;
+    }
+
+    /**
+     * Whether a component resolves to a Latte template under `components/`.
+     * Checked against the finder's paths so we only match `.latte` files
+     * (a `.blade.php` of the same name falls through to the Blade path).
+     */
+    public static function hasLatteView(string $name): bool
+    {
+        $relative = 'components/'.str_replace('.', '/', $name).'.latte';
+        $finder = app('view')->getFinder();
+
+        if (! $finder instanceof FileViewFinder) {
+            return false;
+        }
+
+        foreach ($finder->getPaths() as $path) {
+            if (is_file(rtrim($path, '/\\').'/'.$relative)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolve a component name to its optional backing Latte component class,
+     * or null when the component is a plain (anonymous) template.
+     */
+    public static function latteComponentClass(string $name): ?string
+    {
+        $class = static::composeClass($name);
+
+        return class_exists($class) && is_subclass_of($class, LatteComponent::class)
+            ? $class
+            : null;
+    }
+
+    /**
+     * Build the data spread into a template component's {embed} args at runtime.
+     * With a backing class: constructor filled from attributes (via container),
+     * its data() merged over the raw attributes. Without one: the attributes.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    public static function componentData(string $name, array $attributes): array
+    {
+        $class = static::latteComponentClass($name);
+
+        if (! $class) {
+            return $attributes;
+        }
+
+        $component = app()->make($class, $attributes);
+
+        return array_merge($attributes, $component->data());
+    }
+
+    /**
+     * Render a Blade component by name (runtime fallback for `<x-…>` tags that
+     * don't resolve to a Latte template). Latte template components never reach
+     * here — they are desugared to `{embed}` at compile time.
      *
      * @param  string  $name  The unprefixed component name (e.g. `alert`).
      * @param  array<string, mixed>  $params  Resolved attributes.
      * @param  string|null  $slot  Pre-rendered default-slot string, or null when
      *                             the component was self-closing / had no body.
+     * @param  array<string, ComponentSlot>  $slots  Pre-rendered
+     *                                               named slots, keyed by name.
      */
-    public static function render(string $name, array $params = [], ?string $slot = null): string
+    public static function render(string $name, array $params = [], ?string $slot = null, array $slots = []): string
     {
-        $class = static::composeClass($name);
-
-        if (static::isLatteComponent($class)) {
-            if ($slot !== null) {
-                throw new RuntimeException(
-                    "The Latte component <x-{$name}> does not support a slot/body yet."
-                );
-            }
-
-            // Pass the fully-qualified class name: it contains a backslash, so
-            // Component::generate() skips its own (case-lossy) composeName().
-            $result = Component::generate($class, $params);
-
-            return $result instanceof View ? $result->render() : (string) $result;
-        }
-
         // Crossing back out of Latte into Blade: peel Content/Value wrappers
         // back to raw Statamic sources, since Blade components don't understand
         // them.
-        return static::renderBlade($name, Normalizer::unwrap($params), $slot);
+        return static::renderBlade($name, Normalizer::unwrap($params), $slot, $slots);
     }
 
     /**
@@ -100,15 +156,6 @@ class Components
     }
 
     /**
-     * A composed class maps to a Latte component when it exists and implements
-     * the miko IComponent interface. Kept deliberately cheap (class_exists).
-     */
-    protected static function isLatteComponent(string $class): bool
-    {
-        return class_exists($class) && is_subclass_of($class, IComponent::class);
-    }
-
-    /**
      * Render a Laravel/Statamic Blade component (class or anonymous).
      *
      * Resolution mirrors Statamic\Tags\ComponentProxy (ComponentTagCompiler,
@@ -117,8 +164,9 @@ class Components
      * straight into the component buffer — never re-parsed.
      *
      * @param  array<string, mixed>  $params
+     * @param  array<string, ComponentSlot>  $slots
      */
-    protected static function renderBlade(string $name, array $params, ?string $slot): string
+    protected static function renderBlade(string $name, array $params, ?string $slot, array $slots = []): string
     {
         $obLevel = ob_get_level();
 
@@ -159,6 +207,12 @@ class Components
             $component->withName($name);
             $env->startComponent($component->resolveView(), $component->data());
             $component->withAttributes($attributes->getAttributes());
+
+            // Named slots become $header, $footer, … (as ComponentSlot objects),
+            // pre-rendered by Latte and passed through raw.
+            foreach ($slots as $slotName => $componentSlot) {
+                $env->slot($slotName, $componentSlot);
+            }
 
             // Decision 1.a: echo the pre-rendered Latte slot directly. It becomes
             // the component's ComponentSlot (rendered raw via {{ $slot }}), so

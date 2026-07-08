@@ -3,6 +3,7 @@
 namespace Daun\StatamicLatte\Latte\Extensions\Nodes;
 
 use Daun\StatamicLatte\Latte\Support\Components;
+use Daun\StatamicLatte\Latte\Support\ComponentSlots;
 use Latte\CompileException;
 use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\FragmentNode;
@@ -21,12 +22,13 @@ use Latte\Compiler\Nodes\TextNode;
 use Latte\Compiler\PrintContext;
 
 /**
- * Replacement node for a `<x-…>` component element.
+ * Replacement node for a `<x-…>` component element dispatched to Blade.
  *
- * Emits a single neutral runtime dispatch call to Components::render(), passing
- * the component name, a params array (static strings, dynamic PHP expressions,
- * booleans) and — for paired components — a default-slot string rendered from
- * the component body via output buffering.
+ * Emits a runtime dispatch call to Components::render(), passing the component
+ * name, a params array (static strings, dynamic PHP expressions, booleans) and
+ * — for paired components — the slots rendered from the component body via
+ * output buffering: the loose body as the default slot, plus each named
+ * `<x-slot:header>` / `<x-slot name="header">` child as a Blade ComponentSlot.
  */
 final class ComponentNode extends StatementNode
 {
@@ -36,6 +38,12 @@ final class ComponentNode extends StatementNode
 
     public ?AreaNode $slot = null;
 
+    /** @var array<string, AreaNode> */
+    public array $namedSlots = [];
+
+    /** @var array<string, ArrayNode> */
+    public array $slotAttributes = [];
+
     public static function fromElement(ElementNode $element): self
     {
         $node = new self;
@@ -43,13 +51,29 @@ final class ComponentNode extends StatementNode
         $node->position = $element->position;
         $node->params = self::parseAttributes($element);
 
-        // Paired components carry their body as a FragmentNode (the default
-        // slot). Self-closing / empty components have a NopNode or null here.
-        if ($element->content instanceof FragmentNode) {
-            $node->slot = $element->content;
+        [$named, $loose] = ComponentSlots::split($element, $node->name);
+
+        foreach ($named as $slotName => $slot) {
+            $node->namedSlots[$slotName] = $slot->content ?? new FragmentNode;
+            $node->slotAttributes[$slotName] = self::withoutName(self::parseAttributes($slot));
         }
 
+        // The loose body is the default slot. Self-closing / empty components
+        // (a NopNode or whitespace only) have no default slot.
+        $node->slot = ComponentSlots::hasContent($loose) ? new FragmentNode($loose) : null;
+
         return $node;
+    }
+
+    /** Drop the `name` key of a `<x-slot name="header">` from its attribute bag. */
+    protected static function withoutName(ArrayNode $attributes): ArrayNode
+    {
+        $items = array_filter(
+            $attributes->items,
+            fn (ArrayItemNode $item): bool => ! ($item->key instanceof IdentifierNode && $item->key->name === 'name'),
+        );
+
+        return new ArrayNode(array_values($items));
     }
 
     /**
@@ -59,7 +83,7 @@ final class ComponentNode extends StatementNode
      *   - boolean dismissible      -> true
      *   - spread  ...={$arr} / ...{$arr} -> PHP array unpack
      */
-    protected static function parseAttributes(ElementNode $element): ArrayNode
+    public static function parseAttributes(ElementNode $element): ArrayNode
     {
         $items = [];
         $spreadPending = false;
@@ -170,7 +194,7 @@ final class ComponentNode extends StatementNode
 
     public function print(PrintContext $context): string
     {
-        if ($this->slot === null) {
+        if ($this->slot === null && $this->namedSlots === []) {
             return $context->format(
                 'echo \Daun\StatamicLatte\Latte\Support\Components::render(%dump, %node) %line;',
                 $this->name,
@@ -179,8 +203,38 @@ final class ComponentNode extends StatementNode
             );
         }
 
-        $slot = '$ʟ_slot_'.$context->generateId();
+        $code = '';
+        $default = 'null';
 
+        if ($this->slot !== null) {
+            $default = '$ʟ_slot_'.$context->generateId();
+            $code .= self::buffer($context, $this->slot, $default);
+        }
+
+        $entries = [];
+        foreach ($this->namedSlots as $slotName => $content) {
+            $var = '$ʟ_slotc_'.$context->generateId();
+            $code .= self::buffer($context, $content, $var);
+            $attributes = $context->format('%node', $this->slotAttributes[$slotName]);
+            $entries[] = var_export($slotName, true).
+                ' => new \Illuminate\View\ComponentSlot('.$var.', '.$attributes.')';
+        }
+
+        $slots = '['.implode(', ', $entries).']';
+
+        return $code.$context->format(
+            'echo \Daun\StatamicLatte\Latte\Support\Components::render(%dump, %node, %raw, %raw) %line;',
+            $this->name,
+            $this->params,
+            $default,
+            $slots,
+            $this->position,
+        );
+    }
+
+    /** Wrap slot content in an output buffer captured into $var. */
+    protected static function buffer(PrintContext $context, AreaNode $content, string $var): string
+    {
         return $context->format(
             <<<'XX'
                 ob_start();
@@ -189,22 +243,29 @@ final class ComponentNode extends StatementNode
                 } finally {
                     %raw = ob_get_clean();
                 }
-                echo \Daun\StatamicLatte\Latte\Support\Components::render(%dump, %node, %raw) %line;
+
                 XX,
-            $this->slot,
-            $slot,
-            $this->name,
-            $this->params,
-            $slot,
-            $this->position,
+            $content,
+            $var,
         );
     }
 
     public function &getIterator(): \Generator
     {
         yield $this->params;
+
         if ($this->slot !== null) {
             yield $this->slot;
         }
+
+        foreach ($this->namedSlots as &$content) {
+            yield $content;
+        }
+        unset($content);
+
+        foreach ($this->slotAttributes as &$attributes) {
+            yield $attributes;
+        }
+        unset($attributes);
     }
 }

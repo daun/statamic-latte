@@ -6,12 +6,12 @@ use Latte\CompileException;
 use Tests\Components\Button;
 
 /**
- * `<x-…>` components in Latte templates. One notation dispatches at runtime to
- * either a miko IComponent Latte component or a Laravel/Statamic Blade
- * component (class or anonymous).
+ * `<x-…>` components in Latte templates. One notation, decided at compile time:
+ * a `components/<name>.latte` template is desugared to a native `{embed}`, and
+ * anything else dispatches to a Laravel/Statamic Blade component at runtime.
  */
 beforeEach(function () {
-    // Latte components resolve against this namespace via Component::composeName.
+    // Backing Latte component classes resolve against this namespace.
     config(['latte.components_namespace' => 'Tests\\Components']);
 
     // Register the Blade class component under the `button` alias.
@@ -19,7 +19,7 @@ beforeEach(function () {
 });
 
 describe('dispatch', function () {
-    test('renders a miko IComponent Latte component', function () {
+    test('renders a Latte template component', function () {
         $this->latte('<x-badge label="New"/>')
             ->assertSee('<span class="badge">New</span>', false);
     });
@@ -34,9 +34,9 @@ describe('dispatch', function () {
             ->assertSee('Hi World: there', false);
     });
 
-    test('the Latte (IComponent) component wins when a name resolves to both', function () {
-        // Register a Blade alias under the same `badge` name; the IComponent
-        // Tests\Components\Badge must still win.
+    test('a Latte template wins when a name resolves to both', function () {
+        // Register a Blade alias under the same `badge` name; the Latte template
+        // components/badge.latte must still win.
         Blade::component('badge', Button::class);
 
         $this->latte('<x-badge label="Win"/>')
@@ -51,8 +51,8 @@ describe('subfolders', function () {
             ->assertSee('<div class="filter">Tag:body</div>', false);
     });
 
-    test('resolves a Latte IComponent subfolder component via dot notation', function () {
-        // forms.field -> Tests\Components\Forms\Field (dot becomes namespace).
+    test('resolves a Latte template subfolder component via dot notation', function () {
+        // forms.field -> components/forms/field.latte (dot becomes a subfolder).
         $this->latte('<x-forms.field label="Hi"/>')
             ->assertSee('<span class="badge">Hi</span>', false);
     });
@@ -79,14 +79,39 @@ describe('slots', function () {
             ->assertSee('<div class="card"></div>', false);
     });
 
-    test('errors when a Latte component is given a body/slot', function () {
-        expect(fn () => (string) $this->latte('<x-badge label="X">body</x-badge>'))
-            ->toThrow(RuntimeException::class, 'does not support a slot');
+    test('errors on a standalone <x-slot> outside a component', function () {
+        expect(fn () => $this->latte('<x-slot:header>Hi</x-slot:header>'))
+            ->toThrow(CompileException::class, 'direct child of a component');
+    });
+});
+
+describe('named slots (Blade path)', function () {
+    test('fills a named slot alongside the default slot', function () {
+        $this->latte('<x-framed><x-slot:title>Head</x-slot:title>Body</x-framed>')
+            ->assertSee('<div class="framed"><h1>Head</h1>Body</div>', false);
     });
 
-    test('errors at compile time on a named slot', function () {
-        expect(fn () => $this->latte('<x-card><x-slot:header>Hi</x-slot:header></x-card>'))
-            ->toThrow(CompileException::class, 'Named slots');
+    test('supports the <x-slot name="..."> syntax', function () {
+        $this->latte('<x-framed><x-slot name="title">Head</x-slot>Body</x-framed>')
+            ->assertSee('<div class="framed"><h1>Head</h1>Body</div>', false);
+    });
+
+    test('exposes slot attributes on the ComponentSlot', function () {
+        $this->latte('<x-framed><x-slot:title class="big">Head</x-slot:title>Body</x-framed>')
+            ->assertSee('class="big"', false)
+            ->assertSee('>Head</h1>', false);
+    });
+
+    test('an omitted named slot is empty (isNotEmpty guard)', function () {
+        $this->latte('<x-framed>JustBody</x-framed>')
+            ->assertSee('<div class="framed">JustBody</div>', false)
+            ->assertDontSee('<h1', false);
+    });
+
+    test('renders a nested component inside a named slot', function () {
+        $this->latte('<x-framed><x-slot:title><x-badge label="In"/></x-slot:title>Body</x-framed>')
+            ->assertSee('<span class="badge">In</span>', false)
+            ->assertSee('Body</div>', false);
     });
 });
 
@@ -148,7 +173,7 @@ describe('spread', function () {
             ->assertSee('Hi Deep:', false);
     });
 
-    test('spreads into a Latte IComponent', function () {
+    test('spreads into a Latte template component', function () {
         $this->latte('<x-badge ...={$opts}/>', ['opts' => ['label' => 'Spread']])
             ->assertSee('<span class="badge">Spread</span>', false);
     });
