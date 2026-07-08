@@ -7,6 +7,7 @@ Use the [Latte](https://latte.nette.org/en/) templating language on [Statamic](h
 - Use Statamic's built-in tags and modifiers
 - Resolve the current layout from entry data
 - Render Antlers inline where useful
+- Use `<x-component>` for Latte and Blade components
 
 ## Why Latte?
 
@@ -357,6 +358,105 @@ Nesting `cache` and `nocache` is also not yet supported. The following **will no
     {/nocache}
     this will also be cached
 {/cache}
+```
+
+### Components
+
+Latte templates support the `<x-component>` syntax. A single tag resolves at compile time to either
+a Latte or a Blade component. In case of a conflict, the Latte template wins.
+
+```latte
+<x-badge label="New"/>
+<x-alert message={$error}/>
+<x-forms.button type="submit">Go</x-forms.button>
+```
+
+A **Latte component** is a `.latte` template under the `components/` view directory
+(`<x-forms.button>` → `components/forms/button.latte`). Its tag is desugared to a native
+`{embed}`, so the template receives the attributes as variables and renders slots as blocks.
+Anything without a matching template falls back to a **Blade component** (class, anonymous or
+vendor), rendered at runtime.
+
+#### Attributes
+
+Attributes can be static strings, dynamic PHP expressions, or bare booleans. For Latte
+components they become variables in the template; for Blade components, any attributes not
+declared as constructor params flow into the `$attributes` bag.
+
+```latte
+<x-button type="submit"/>
+<x-button count={$n}/>
+<x-button label={strtoupper($s)}/>
+<x-button disabled/>
+<x-greeting ...{$props}/>
+```
+
+#### Backing class (optional)
+
+A Latte component may have a backing class extending `Daun\StatamicLatte\Components\Component`
+for logic. Constructor parameters are filled from the tag's attributes, and `data()` is spread
+into the template's variables. Without a class, a component is just its template (anonymous).
+
+```php
+use Daun\StatamicLatte\Components\Component;
+
+class Alert extends Component
+{
+    public function __construct(
+        public string $type = 'info',
+    ) {}
+
+    public function data(): array
+    {
+        return [...parent::data(), 'classes' => "alert alert-{$this->type}"];
+    }
+}
+```
+
+#### Slots
+
+**Latte components** use named and default slots, which compile to `{embed}` blocks. Fill a named
+slot with `<x-slot:name>` (or `<x-slot name="name">`); the remaining body fills the default slot.
+A slot that is omitted falls back to the `{slot …}` content defined in the component template, and
+slot content is evaluated in the caller's scope.
+
+```latte
+{* components/alert.latte *}
+<div class="alert">
+    <strong>{slot title}Notice{/slot}</strong>
+    {slot default}{/slot}
+</div>
+
+{* usage *}
+<x-alert>
+    <x-slot:title>Heads up</x-slot:title>
+    Something happened.
+</x-alert>
+```
+
+**Blade components** accept a body as the default slot (`{{ $slot }}`), captured as a pre-rendered
+string and echoed directly. Named slots work too: each `<x-slot:name>` becomes a Blade
+`ComponentSlot` (`$name`, with `isEmpty()`/`isNotEmpty()` and its own `$name->attributes`).
+
+```latte
+<x-card>
+    Hello <strong>World</strong>
+</x-card>
+
+<x-framed>
+    <x-slot:title class="font-bold">Heads up</x-slot:title>
+    Body content
+</x-framed>
+```
+
+#### Control attributes
+
+Latte's `n:` control attributes work on components:
+
+```latte
+<x-card n:if="$show">content</x-card>
+
+<x-greeting n:foreach="$names as $name" name={$name}/>
 ```
 
 ## License
