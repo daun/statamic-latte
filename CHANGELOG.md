@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+- Add `latte:warmup` command to compile all `.latte` views ahead of time (also available as `php please latte:warmup`)
+- Add opt-in `warmup_on_view_cache` config option to warm Latte's compiled cache automatically after `view:cache`
+
 ## [2.1.0] - 2026-07-08
 
 - Support `<x-component>` syntax for both Latte and Blade partials

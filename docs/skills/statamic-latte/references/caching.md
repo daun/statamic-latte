@@ -72,3 +72,5 @@ Limitations:
 ## The compiled-template cache
 
 Latte compiles `.latte` files to PHP in `storage/framework/views` (configurable via `latte.compiled`). Auto-refresh follows `app.debug` unless `latte.auto_refresh` is set — so in production **nothing checks template freshness: deploys must run `php artisan view:clear`**. Also clear after installing addons that register tags (the `{s:...}` block form binds at compile time) — see the gotcha in [statamic-tags.md](statamic-tags.md).
+
+`view:cache` only compiles Blade, so run `php artisan latte:warmup` after it (or enable `warmup_on_view_cache` in `config/statamic-latte.php`) to compile `.latte` views at deploy time instead of on the first request.

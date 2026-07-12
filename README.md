@@ -360,6 +360,45 @@ Nesting `cache` and `nocache` is also not yet supported. The following **will no
 {/cache}
 ```
 
+### Deployment & warmup
+
+Laravel's `view:cache` command only compiles `.blade.php` templates, so `.latte` templates
+are left to compile lazily on the first request that needs them. In production that means
+your first visitor after a deploy pays the compile cost — and, worse, any Latte compile
+error only surfaces on that first real request instead of at deploy time.
+
+Run `php artisan latte:warmup` (also available as `php please latte:warmup`) after your
+usual `view:cache` step to compile every `.latte` view up front:
+
+```bash
+php artisan view:clear
+php artisan view:cache
+php artisan latte:warmup
+```
+
+It discovers every `.latte` file across all registered view paths and namespace hints
+(including vendor-published or overridden views), compiles each one, and reports a summary.
+Per-file compile errors are caught and listed with the failing file and message; the command
+exits non-zero if any file failed, so a broken template can fail your deploy instead of a
+visitor's request.
+
+```bash
+php artisan latte:warmup --clear   # also clear previously compiled Latte output first
+```
+
+If you'd rather not add a separate deploy step, set `warmup_on_view_cache` to `true` in
+`config/statamic-latte.php` (default `false`) to run the same warmup automatically right
+after `view:cache` finishes:
+
+```php
+// config/statamic-latte.php
+'warmup_on_view_cache' => true,
+```
+
+This is opt-in because `view:cache` failing your deploy on a Latte error is a deliberate
+behavior change — with it enabled, a Latte compile error after `view:cache` will make the
+process exit non-zero, the same way a Blade compile error already does.
+
 ### Components
 
 Latte templates support the `<x-component>` syntax. A single tag resolves at compile time to either
