@@ -1,9 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.1] - 2026-07-13
 
-- Add `latte:warmup` command to compile all `.latte` views ahead of time (also available as `php please latte:warmup`)
-- Add opt-in `warmup_on_view_cache` config option to warm Latte's compiled cache automatically after `view:cache`
+- Ensure user modifiers override builtin Latte filters
 
 ## [2.1.0] - 2026-07-08
 
@@ -47,6 +46,7 @@
 
 - Initial release
 
+[2.1.1]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
 [2.1.0]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
 [2.0.0]: https://github.com/daun/statamic-latte/releases/tag/2.0.0
 [1.3.0]: https://github.com/daun/statamic-latte/releases/tag/1.3.0
