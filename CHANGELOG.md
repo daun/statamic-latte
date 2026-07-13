@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.0] - 2026-07-13
+
+- Forward method calls to underlying content objects
+
 ## [2.1.2] - 2026-07-13
 
 - Remove unfinished warmup command
@@ -50,6 +54,7 @@
 
 - Initial release
 
+[2.2.0]: https://github.com/daun/statamic-latte/releases/tag/2.2.0
 [2.1.2]: https://github.com/daun/statamic-latte/releases/tag/2.1.2
 [2.1.1]: https://github.com/daun/statamic-latte/releases/tag/2.1.1
 [2.1.0]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
