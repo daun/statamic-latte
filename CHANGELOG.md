@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.2] - 2026-07-13
+
+- Remove unfinished warmup command
+
 ## [2.1.1] - 2026-07-13
 
 - Ensure user modifiers override builtin Latte filters
@@ -46,7 +50,8 @@
 
 - Initial release
 
-[2.1.1]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
+[2.1.2]: https://github.com/daun/statamic-latte/releases/tag/2.1.2
+[2.1.1]: https://github.com/daun/statamic-latte/releases/tag/2.1.1
 [2.1.0]: https://github.com/daun/statamic-latte/releases/tag/2.1.0
 [2.0.0]: https://github.com/daun/statamic-latte/releases/tag/2.0.0
 [1.3.0]: https://github.com/daun/statamic-latte/releases/tag/1.3.0
