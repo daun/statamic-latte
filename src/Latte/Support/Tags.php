@@ -7,6 +7,7 @@ use Daun\StatamicLatte\Data\Resolver;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Str;
 use Statamic\Facades\Blink;
+use Statamic\Facades\Cascade;
 use Statamic\Statamic;
 use Statamic\Tags\FluentTag;
 
@@ -72,7 +73,9 @@ class Tags
             }
         }
 
-        $tag = Statamic::tag($name)->params($params);
+        $tag = Statamic::tag($name)
+            ->params($params)
+            ->context(Cascade::instance()->toArray());
 
         if ($content !== null) {
             $tag = $tag->withContent($content);

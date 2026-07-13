@@ -1,5 +1,7 @@
 <?php
 
+use Statamic\Facades\Cascade;
+
 describe('scalar tags', function () {
     test('passes value variable into tag pair context', function () {
         $this->latte('A link to {s:link to: "snacks"}{$value}{/s:link}')->assertSee('A link to /snacks');
@@ -77,6 +79,14 @@ describe('paginated tags', function () {
             ->assertSee('|Testable|')
             ->assertDontSee('Testable With Layout')
             ->assertSee('Showing page 1 of 2, 2 total');
+    });
+});
+
+describe('context', function () {
+    test('passes the current cascade context to statamic tags', function () {
+        Cascade::instance()->set('path', '/current-page');
+
+        $this->latte('{s:path /}')->assertSee('/current-page');
     });
 });
 
