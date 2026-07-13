@@ -2,13 +2,10 @@
 
 namespace Daun\StatamicLatte;
 
-use Daun\StatamicLatte\Commands\WarmupCommand;
 use Daun\StatamicLatte\Latte\Extensions;
 use Daun\StatamicLatte\Latte\LaravelViewLoader;
 use Daun\StatamicLatte\Latte\Loaders\TagMethodLoader;
 use Daun\StatamicLatte\Latte\NormalizingEngine;
-use Daun\StatamicLatte\Listeners\WarmsLatteAfterViewCache;
-use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Support\Facades\View;
 use Latte\Engine;
 use Statamic\Providers\AddonServiceProvider;
@@ -29,16 +26,6 @@ class ServiceProvider extends AddonServiceProvider
     ];
 
     public static $temporaryViewNamespace = 'statamic-latte-temp';
-
-    protected $commands = [
-        WarmupCommand::class,
-    ];
-
-    protected $listen = [
-        CommandFinished::class => [
-            WarmsLatteAfterViewCache::class,
-        ],
-    ];
 
     public function bootAddon()
     {
