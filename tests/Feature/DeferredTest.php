@@ -121,3 +121,24 @@ describe('deferred relationships in templates', function () {
         )->assertSee('Testable');
     });
 });
+
+describe('deferred method passthrough', function () {
+    test('forwards method calls on a single-item deferred relationship', function () {
+        $deferred = Content::wrapAll(['related' => childPage()->augmentedValue('related_page')])['related'];
+
+        expect($deferred)->toBeInstanceOf(Deferred::class);
+        expect($deferred->slug())->toBe('testable');
+    });
+
+    test('rejects method calls on a list deferred relationship', function () {
+        $deferred = Content::wrapAll(['related' => childPage()->augmentedValue('related_pages')])['related'];
+
+        expect(fn () => $deferred->slug())->toThrow(BadMethodCallException::class);
+    });
+
+    test('blocks destructive methods through the deferred proxy', function () {
+        $deferred = Content::wrapAll(['related' => childPage()->augmentedValue('related_page')])['related'];
+
+        expect(fn () => $deferred->delete())->toThrow(LogicException::class);
+    });
+});

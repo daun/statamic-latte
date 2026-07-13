@@ -156,6 +156,50 @@ describe('content wrap', function () {
     });
 });
 
+describe('method passthrough', function () {
+    test('forwards method calls to the source object', function () {
+        $content = Content::wrap(testEntry());
+
+        expect($content->slug())->toBe('testable');
+    });
+
+    test('wraps method return values', function () {
+        $content = Content::wrap(testEntry());
+
+        // augmentedValue() returns a lazy Value; the passthrough must wrap it.
+        expect($content->augmentedValue('title'))->toBe('Testable');
+    });
+
+    test('forwards method arguments', function () {
+        $content = Content::wrap(testEntry());
+
+        expect($content->get('title'))->toBe('Testable');
+    });
+
+    test('blocks destructive methods regardless of case', function () {
+        $content = Content::wrap(testEntry());
+
+        expect(fn () => $content->delete())->toThrow(LogicException::class);
+        expect(fn () => $content->saveQuietly())->toThrow(LogicException::class);
+        expect(fn () => $content->set('title', 'Hacked'))->toThrow(LogicException::class);
+    });
+
+    test('throws for undefined methods', function () {
+        expect(fn () => Content::wrap(testEntry())->nonexistentMethodXyz())
+            ->toThrow(BadMethodCallException::class);
+    });
+
+    test('throws for method calls on array-backed content', function () {
+        expect(fn () => Content::wrap(['a' => 1])->anything())
+            ->toThrow(BadMethodCallException::class);
+    });
+
+    test('calls entry methods from a real Latte template', function () {
+        $this->latte('{$page->slug()}', ['page' => testEntry()])
+            ->assertSee('testable');
+    });
+});
+
 describe('deprecated Normalizer shim', function () {
     test('Normalizer::normalize delegates to Content::wrap', function () {
         $content = Normalizer::normalize(testEntry());

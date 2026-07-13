@@ -25,8 +25,11 @@ use Traversable;
  *   {$entry->title}          -> augmentedValue('title')->value()
  *   {$entry->author->name}   -> nested Content, augmented lazily
  *
- * No magic method dispatch (`__call`) by design — properties only.
  * Supports both `->key` and `['key']` so a template never guesses wrong.
+ *
+ * Method calls pass through to the underlying source object so custom
+ * entry classes can expose logic to templates ({$page->events()}), with
+ * return values wrapped and destructive methods (save/delete/...) blocked.
  *
  * Iterable too: `{foreach $content as $key => $value}` walks its keys (each
  * resolved lazily). Iterating an Augmentable forces full augmentation — that's
@@ -37,6 +40,16 @@ use Traversable;
  */
 class Content implements ArrayAccess, IteratorAggregate
 {
+    /**
+     * @var array<int, string>
+     */
+    protected const GUARDED_METHODS = [
+        'delete', 'deletequietly',
+        'save', 'savequietly',
+        'set', 'setsupplement', 'remove', 'removesupplement', 'merge',
+        'move', 'rename', 'replace', 'reupload',
+    ];
+
     /** @var array<string, mixed> Normalized per-key cache. */
     protected array $cache = [];
 
@@ -57,6 +70,22 @@ class Content implements ArrayAccess, IteratorAggregate
     public function __isset(string $key): bool
     {
         return $this->has($key);
+    }
+
+    /**
+     * @param  array<int, mixed>  $args
+     */
+    public function __call(string $name, array $args): mixed
+    {
+        if (in_array(strtolower($name), static::GUARDED_METHODS, true)) {
+            throw new \LogicException("Method {$name}() is not allowed on wrapped content: wrappers are read-only.");
+        }
+
+        if (! is_array($this->source) && method_exists($this->source, $name)) {
+            return static::wrap($this->source->{$name}(...$args));
+        }
+
+        throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
     }
 
     public function offsetExists(mixed $offset): bool

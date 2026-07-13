@@ -77,6 +77,24 @@ final class Deferred implements ArrayAccess, Countable, IteratorAggregate, JsonS
         return $this->offsetExists($key);
     }
 
+    /**
+     * Forward method calls to the materialized Content (single-item shape) so
+     * a deferred max_items:1 relationship variable supports {$related->method()}
+     * too. List materializations have no meaningful method surface.
+     *
+     * @param  array<int, mixed>  $args
+     */
+    public function __call(string $name, array $args): mixed
+    {
+        $resolved = $this->materialize();
+
+        if ($resolved instanceof Content) {
+            return $resolved->{$name}(...$args);
+        }
+
+        throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', self::class, $name));
+    }
+
     public function offsetExists(mixed $offset): bool
     {
         // Content implements ArrayAccess, so isset[] covers both the array
