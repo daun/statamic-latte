@@ -42,7 +42,7 @@ Every view variable is normalized at the render boundary:
 | Scalar | untouched |
 | Non-empty relationship field (top level) | lazy `Deferred` proxy — truthy, loopable, countable |
 
-Values augment lazily and stringify on print — `{$title}`, `{$author->name}` just work. **No method calls**: `$entry->title()` fails (`Content` has no `__call`). Unknown field handles return `null` silently. Test relationships with `{if $related}`, never `{ifset}`. Details and pitfalls: [data.md](references/data.md).
+Values augment lazily and stringify on print — `{$title}`, `{$author->name}` just work. **Method calls** forward to the underlying object (`$page->events()` calls your custom entry class; destructive methods like save/delete are blocked). Unknown field handles return `null` silently. Test relationships with `{if $related}`, never `{ifset}`. Details and pitfalls: [data.md](references/data.md).
 
 ## Statamic tags in one minute
 
@@ -87,7 +87,7 @@ Two deliberate deviations from Antlers:
 2. **No key hoisting**: inside tag pairs the item is `$value`; a bare `{title}` is a Latte syntax error, not a field lookup.
 3. A tag pair whose result is `null`, `''`, or `false` **skips its body entirely** (Antlers-parity gate) — `{s:user:profile}...{/s:user:profile}` renders nothing for guests.
 4. `{if $related}` is the correct emptiness test for relationships; `{ifset}` gives shape-dependent wrong answers ([data.md](references/data.md)).
-5. `$entry->title()` fails — no method dispatch on wrapped data. View data is read-only; never assign to it.
+5. `$entry->delete()` / `->save()` throw — destructive methods are blocked. View data is read-only; never assign to it.
 6. `form:create` returns **data, not `<form>` HTML**; `form:errors` is a **boolean gate**, not an error iterator ([statamic-tags.md](references/statamic-tags.md)).
 7. `(s:` followed by a letter is **reserved syntax everywhere** outside `{* comments *}` and `{antlers}` blocks — literal prose like `(s:foo bar)` gets rewritten and mangled.
 8. A bare filter pipe inside `(s:...)` params is a compile error: `in: $c|lower` fails — parenthesize: `in: ($c|lower)`. Filters on the *result* go outside: `{(s:link to: "x")|upper}`.

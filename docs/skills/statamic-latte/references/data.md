@@ -28,7 +28,7 @@ Rule of thumb: **lists are arrays, single things are objects.** A `max_items: 1`
 
 - `$entry->title` ≡ `$entry['title']`. Nested access chains lazily: `$entry->author->name`, `$page->meta->author`, grid rows as arrays of Content (`$page->blocks[0]->heading`).
 - Fields **augment lazily per key** (only what you touch) and **stringify automatically on print** — `{$title}`, `{$author->name}` need no unwrapping.
-- **No method dispatch**: `$entry->title()` fails — `Content` has no `__call`. If you need entry methods, you're usually looking for a field or a tag.
+- **Method passthrough**: `$entry->slug()` forwards to the source object and wraps the return — use it for custom entry-class methods (`$page->events()`). Destructive methods (save/delete/set/...) throw `LogicException`. For blueprint data, prefer field access.
 - Unknown keys return `null` **silently** — a misspelled handle produces empty output, not an error.
 - **Read-only**: array-style writes throw `LogicException`; property writes silently create a shadowing dynamic property. Treat both as forbidden — use `{var}` for template-local state.
 - Iterating a single `Content` (`{foreach $entry as $k => $v}`) walks **all fields** and forces full augmentation — legal but expensive and almost never intended.
@@ -86,4 +86,4 @@ Printing an **array** into a scalar attribute throws ("array is not allowed") �
 | bard/markdown prints literal `<p>` as text | auto-escaping; add `\|noescape` |
 | modifier behaves differently than Antlers | modifiers get an empty context; and a same-named Latte filter shadows the modifier entirely |
 | `{title}` throws a syntax error | no key hoisting — write `{$value->title}` / `{$entry->title}` |
-| `$entry->title()` fails | no method dispatch on `Content`, by design |
+| `$entry->delete()` throws | destructive methods blocked — wrappers are read-only |

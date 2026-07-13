@@ -27,7 +27,7 @@ WHY: raw Statamic `Value` objects are always truthy and re-augment on every acce
 
 Rules that follow:
 
-- `$entry->title` and `$entry['title']` are equivalent (ContentWrapTest "supports both -> and [] access"). There is deliberately NO method dispatch: `$entry->title()` fails — `Content` has no `__call`.
+- `$entry->title` and `$entry['title']` are equivalent (ContentWrapTest "supports both -> and [] access"). Method calls pass through to the source object: `$entry->slug()` calls `Entry::slug()` and wraps the result — custom entry-class methods work (`$page->events()`). Destructive methods (save/delete/set/...) throw `LogicException`; unknown methods throw `BadMethodCallException` (unlike unknown fields, which return null).
 - `Content` is read-only for array-style writes: `$entry['k'] = ...` / `unset($entry['k'])` throw `LogicException('Content wrappers are read-only.')`. Property writes (`$entry->k = ...`) are NOT guarded — they silently create a dynamic property that shadows the real field on later reads. Treat both as forbidden.
 - Nested access chains lazily: `{$entry->author->name}` returns nested `Content` objects.
 - Iterating a `Content` (`{foreach $entry as $k => $v}`) walks ALL its fields and forces full augmentation — legal but expensive; almost never what a template author wants.
@@ -176,7 +176,7 @@ Type-aware attribute rendering works with wrapped data and `(s:...)` subexpressi
 
 - Never document or rely on `{if $related}` being "always truthy for Deferred" as a bug — it is correct BECAUSE empties are never deferred. Changing the deferral predicate breaks template truthiness site-wide.
 - Never tell users to count relationships via raw IDs; `count()`/`|length` intentionally reflect published, existing entries only.
-- Never suggest `$content->someMethod()` — `Content` has no `__call` by design ("so a template never guesses wrong").
+- `$content->someMethod()` forwards to the source object (wrapped return, destructive methods blocked via `Content::GUARDED_METHODS`) — but prefer field access for blueprint data; method passthrough is for custom entry-class logic.
 - Never write a single non-closed `{s:tag args}` in examples — it will not compile; self-close it.
 - Never put a bare `|filter` inside `(s:...)` params — compile error by design; parenthesize.
 - Never present `form:errors` as a loop of error strings — it's a boolean gate; errors iterate from the `form:create` capture.

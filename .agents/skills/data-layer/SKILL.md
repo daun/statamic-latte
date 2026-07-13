@@ -68,7 +68,7 @@ Protected; called only from `wrapAll` — unit-test deferral policy through `Con
 ### Content instances
 
 - Per-key lazy: `__get`/`offsetGet` → `resolve($key)` → `rawValue($key)` → `static::wrap`, memoized in `$cache`. For Augmentables, `rawValue` uses `augmentedValue($key)` so only the touched field is augmented.
-- No `__call` by design — property/array access only.
+- `__call` forwards to the source object (custom entry-class methods like `$page->events()`), wrapping the return via `Content::wrap`. Destructive methods (`Content::GUARDED_METHODS`, lowercase list: delete/save/set/merge/move/...) throw `LogicException`; unknown methods throw `BadMethodCallException`; array-backed sources never forward. `Deferred::__call` delegates to the materialized Content (single-item shape only).
 - Read-only: `offsetSet`/`offsetUnset` throw `LogicException`. Templates never mutate view data.
 - Iterating a Content backed by an Augmentable forces FULL augmentation of every key (`getIterator` resolves all `keys()`) — documented opt-in cost; property access stays per-key lazy.
 - `keys()` calls `Augmented->keys()` which lives on `AbstractAugmented`, not the contract — hence the sanctioned `@phpstan-ignore method.notFound`. Don't "fix" the type; it's an upstream interface gap.
