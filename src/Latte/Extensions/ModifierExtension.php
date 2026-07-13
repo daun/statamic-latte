@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Latte\Engine;
 use Latte\Essential\CoreExtension;
 use Latte\Extension;
+use Statamic\Modifiers\CoreModifiers;
 use Statamic\Modifiers\Loader;
 
 /**
@@ -32,10 +33,19 @@ class ModifierExtension extends Extension
 
     public function getFilters(): array
     {
-        return $this->modifiers
-            ->except($this->getDefinedFilters())
+        [$user, $core] = $this->modifiers->partition(
+            fn ($reference) => $this->isUserModifier($reference)
+        );
+
+        return $user
+            ->merge($core->except($this->getDefinedFilters()))
             ->map(fn ($_, $name) => fn ($value, ...$args) => $this->applyModifier($name, $value, ...$args))
             ->all();
+    }
+
+    protected function isUserModifier($reference): bool
+    {
+        return is_string($reference) && ! str_contains($reference, CoreModifiers::class.'@');
     }
 
     protected function getDefinedFilters(): array
