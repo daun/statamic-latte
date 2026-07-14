@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.3.1] - 2026-07-14
+
+- Preserve shared paginator across tag renders
+
 ## [2.3.0] - 2026-07-13
 
 - Pass cascade context to Statamic tags
@@ -58,6 +62,7 @@
 
 - Initial release
 
+[2.3.1]: https://github.com/daun/statamic-latte/releases/tag/2.3.1
 [2.3.0]: https://github.com/daun/statamic-latte/releases/tag/2.3.0
 [2.2.0]: https://github.com/daun/statamic-latte/releases/tag/2.2.0
 [2.1.2]: https://github.com/daun/statamic-latte/releases/tag/2.1.2
