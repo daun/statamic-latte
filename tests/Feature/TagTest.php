@@ -1,6 +1,10 @@
 <?php
 
+use Daun\StatamicLatte\Latte\Support\Tags as LatteTags;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Statamic\Facades\Blink;
 use Statamic\Facades\Cascade;
+use Statamic\Tags\Tags as StatamicTag;
 
 describe('scalar tags', function () {
     test('passes value variable into tag pair context', function () {
@@ -79,6 +83,32 @@ describe('paginated tags', function () {
             ->assertSee('|Testable|')
             ->assertDontSee('Testable With Layout')
             ->assertSee('Showing page 1 of 2, 2 total');
+    });
+
+    test('preserves a custom paginator for addon tags', function () {
+        $paginator = new LengthAwarePaginator(['custom'], 1, 1);
+        Blink::put('tag-paginator', $paginator);
+
+        app('statamic.tags')->put('paginator_consumer', new class extends StatamicTag
+        {
+            public function index()
+            {
+                return Blink::get('tag-paginator') instanceof LengthAwarePaginator
+                    ? 'paginator available'
+                    : 'paginator missing';
+            }
+        });
+
+        expect(LatteTags::fetch('paginator_consumer'))->toBe('paginator available')
+            ->and(Blink::get('tag-paginator'))->toBe($paginator);
+    });
+
+    test('leaves a fetched paginator available in Blink', function () {
+        $this->latte('{s:collection from: pages, paginate: 1}{/s:collection}');
+
+        expect(Blink::get('tag-paginator'))
+            ->toBeInstanceOf(LengthAwarePaginator::class)
+            ->total()->toBe(2);
     });
 });
 

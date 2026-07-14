@@ -93,12 +93,12 @@ class Tags
      */
     protected static function fetchTag(string $name, $tag)
     {
-        // Statamic flattens a paginated query into a plain array, discarding the
-        // paginator itself. It does stash the original paginator in Blink first
-        // (see GetsQueryResults::paginatedResults), so we forget any stale slot,
-        // run the tag, and recover the real Laravel paginator if one was set.
-        // That keeps `{foreach}`, `$p->total()`, `$p->links()` etc. idiomatic.
-        Blink::forget('tag-paginator');
+        // Statamic flattens a paginated query into a plain array and stashes the
+        // paginator in Blink (see GetsQueryResults::paginatedResults). Snapshot
+        // the shared slot so only a paginator created by this tag is recovered,
+        // without removing paginator state needed by Statamic or addon tags.
+        /** @var mixed $previousPaginator */
+        $previousPaginator = Blink::get('tag-paginator');
 
         try {
             $result = $tag->fetch();
@@ -109,9 +109,7 @@ class Tags
         /** @var mixed $paginator */
         $paginator = Blink::get('tag-paginator');
 
-        if ($paginator instanceof AbstractPaginator) {
-            Blink::forget('tag-paginator');
-
+        if ($paginator instanceof AbstractPaginator && $paginator !== $previousPaginator) {
             return static::normalizePaginator($paginator);
         }
 
