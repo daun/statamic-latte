@@ -168,12 +168,15 @@ Statamic flattens paginated results to a plain array but stashes the real Larave
 in Blink under `'tag-paginator'` first (verified: `Blink::put('tag-paginator', $paginator)`
 in vendor `Statamic\Tags\Concerns\GetsQueryResults::paginatedResults`). `Tags::fetchTag`:
 
-1. `Blink::forget('tag-paginator')` BEFORE `$tag->fetch()` — otherwise a previous tag's
-   paginator on the same request leaks into this one;
+1. snapshots the existing Blink value before `$tag->fetch()` without removing it — addon
+   tags and Statamic's static-cache middleware may need that shared paginator state;
 2. runs the tag;
-3. if `Blink::get('tag-paginator')` holds an `AbstractPaginator`, forgets the slot again and
-   returns `normalizePaginator()` — items `Content::wrap`ped in place, paginator API
-   (`total()`, `currentPage()`, `links()`) intact.
+3. if the Blink value is a new `AbstractPaginator` instance, returns `normalizePaginator()`
+   while leaving the slot intact — items are `Content::wrap`ped in place and paginator API
+   (`total()`, `currentPage()`, `links()`) remains available.
+
+The identity comparison prevents a previous tag's paginator from being mistaken for the
+current non-paginated tag's result without destroying request-scoped Blink state.
 
 Built test-first (commit `9a27c32` + tests `865a613`, `241d32f`, `161ec40`) across ALL
 capture styles: plain pair, `as:` param, `{var $x = (s:...)}` subexpression, and
@@ -210,7 +213,8 @@ tests/Tags/UnsupportedTagsTest.php asserting the CompileException message.
 - `as`, `content`, `__sl_tag` are bridge-consumed and never forwarded to the tag.
 - All non-paginator output goes through `Content::wrap`; paginator objects survive intact
   with items wrapped.
-- `Blink::forget('tag-paginator')` before fetch, forget again after recovery.
+- Preserve Blink's `'tag-paginator'` slot; identify a paginator created by the current tag
+  through before/after object identity.
 - Both argument entry points (`TagNode::parseArguments`, `TagExpressionSyntax::rewriteCall`)
   share `TagArguments`.
 - Loader rewrites are pure string→string, skip protected regions, and
