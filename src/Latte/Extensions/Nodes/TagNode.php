@@ -55,7 +55,6 @@ final class TagNode extends StatementNode
         'partial' => 'Use the built-in `{include}` or `{embed}` tag instead',
         'switch' => 'Use the built-in `{switch}` tag instead',
         'translate' => 'Use the built-in `{_}` tag or `|translate` filter instead',
-        'trans' => 'Use the built-in `{_}` tag or `|translate` filter instead',
         'trans_choice' => 'Use the built-in `{_}` tag or `|translate` filter instead',
         'yield' => 'Use the built-in `{yield}` tag instead',
         'section' => 'Use the built-in `{section}` tag instead',

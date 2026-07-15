@@ -186,8 +186,7 @@ invoking tags, pagination silently degrades to a keyed array.
 ## The `$unsupportedTags` blocklist
 
 `TagNode::$unsupportedTags` currently blocks: `cache`, `foreach`, `partial`, `switch`,
-`translate`, `trans`, `trans_choice`, `yield`, `section`, `scope`, `loop`, `increment`,
-`dump` — each with a message pointing at the native Latte equivalent (except `scope`,
+`translate`, `trans_choice`, `yield`, `section`, `scope`, `loop`, `increment`, `dump` — each with a message pointing at the native Latte equivalent (except `scope`,
 which is simply "Not supported in Latte" — blocking without an equivalent is allowed when
 the construct has no Latte counterpart), thrown as a CompileException in `TagNode::create`.
 

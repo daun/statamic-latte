@@ -164,7 +164,7 @@ These throw a `CompileException` naming the alternative:
 | `s:foreach`, `s:loop` | `{foreach}` / `{for}` |
 | `s:partial` | `{include}` / `{embed}` |
 | `s:switch` | `{switch}` |
-| `s:translate`, `s:trans`, `s:trans_choice` | `{_}` tag / `|translate` filter |
+| `s:translate`, `s:trans_choice` | `{_}` tag / `|translate` filter |
 | `s:yield`, `s:section` | `{yield}` / `{section}` ([views-and-composition.md](views-and-composition.md)) |
 | `s:scope` | not supported (Latte has real lexical scope) |
 | `s:increment` | variable assignment |
@@ -172,6 +172,7 @@ These throw a `CompileException` naming the alternative:
 
 ## Per-tag notes and runtime incompatibilities
 
+- **trans**: `{s:trans key: "primary", fallback: (s:trans key: "fallback") /}` supports Statamic's fallback lookup and nested tag expressions.
 - **glide**: `{s:glide src: "assets::img/example.jpg", width: 100 /}` prints the URL. In a pair, `$value` **is the URL string**, not an object. `{s:glide:data_url src: ... /}` → base64 data URI. `glide:batch` does **not** work (body never reaches the tag) — capture instead: `{capture $src}{s:glide src: ... /}{/capture}<img src="{$src}">`.
 - **svg**: `{s:svg src: "logo", class: "icon" /}` inlines raw SVG. In a pair body, `{$value}` gets HTML-escaped — always self-close.
 - **vite / mix**: `{s:vite src: "resources/js/app.js" /}` emits script + preload tags; `{s:vite:content src: ... /}` inlines the file; missing entries throw.

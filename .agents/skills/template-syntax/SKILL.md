@@ -168,6 +168,12 @@ Type-aware attribute rendering works with wrapped data and `(s:...)` subexpressi
 
 `n:attr` values are `Content::unwrap`-ed automatically, so an assoc `Content` spreads into attributes (NAttributeTest "spreads an associative array passed as a Content object"). Printing an ARRAY into a scalar attribute throws (`array is not allowed` — Latte 3.1 type check), so resolve iterable tag results before using them in attributes.
 
+`s:trans` remains available when Statamic's fallback lookup is needed, including nested fallback expressions:
+
+```latte
+{s:trans key: "primary", fallback: (s:trans key: "fallback") /}
+```
+
 ## Blocked Statamic tags and their native alternatives
 
 `TagNode::$unsupportedTags` (src/Latte/Extensions/Nodes/TagNode.php) throws a `CompileException` at compile time for these — the message names the alternative:
@@ -178,7 +184,7 @@ Type-aware attribute rendering works with wrapped data and `(s:...)` subexpressi
 | `foreach` | built-in `{foreach}` |
 | `partial` | built-in `{include}` / `{embed}` |
 | `switch` | built-in `{switch}` |
-| `translate`, `trans`, `trans_choice` | built-in `{_}` tag / `|translate` filter |
+| `translate`, `trans_choice` | built-in `{_}` tag / `|translate` filter |
 | `yield` | built-in `{yield}` |
 | `section` | built-in `{section}` |
 | `scope` | not supported in Latte |
