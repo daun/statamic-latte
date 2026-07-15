@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.4.0] - 2026-07-15
+
+- Support native translation tags
+
 ## [2.3.2] - 2026-07-15
 
 - Preserve structured string values for links and dictionaries
@@ -66,6 +70,7 @@
 
 - Initial release
 
+[2.4.0]: https://github.com/daun/statamic-latte/releases/tag/2.4.0
 [2.3.2]: https://github.com/daun/statamic-latte/releases/tag/2.3.2
 [2.3.1]: https://github.com/daun/statamic-latte/releases/tag/2.3.1
 [2.3.0]: https://github.com/daun/statamic-latte/releases/tag/2.3.0
