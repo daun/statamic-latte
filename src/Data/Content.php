@@ -11,7 +11,6 @@ use Statamic\Contracts\Data\Augmented;
 use Statamic\Data\AugmentedCollection;
 use Statamic\Facades\Compare;
 use Statamic\Fields\ArrayableString;
-use Statamic\Fields\LabeledValue;
 use Statamic\Fields\Value;
 use Statamic\Fields\Values;
 use Traversable;
@@ -233,11 +232,12 @@ class Content implements ArrayAccess, IteratorAggregate
         if ($value instanceof Value) {
             return static::wrap($value->value());
         }
-        if ($value instanceof LabeledValue) {
-            return $value->value();
-        }
         if ($value instanceof ArrayableString) {
-            return (string) $value;
+            $wrapped = new ArrayableValue($value);
+
+            // PHP objects are always truthy. Keep falsy values scalar so
+            // Latte conditionals retain their existing behavior.
+            return $wrapped->toBool() ? $wrapped : $wrapped->scalar();
         }
         if (Compare::isQueryBuilder($value)) {
             return static::wrap($value->get());
@@ -288,6 +288,11 @@ class Content implements ArrayAccess, IteratorAggregate
             // Materialize then unwrap: modifiers, n:attr and Antlers all expect
             // a plain array / augmentable, never a proxy object.
             return static::unwrap($value->materialize());
+        }
+        if ($value instanceof ArrayableValue) {
+            // Preserve the scalar value modifiers and other reverse boundaries
+            // received before ArrayableValue added object-access syntax.
+            return $value->scalar();
         }
         if (is_array($value)) {
             return array_map([static::class, 'unwrap'], $value);

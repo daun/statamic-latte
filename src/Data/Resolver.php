@@ -28,6 +28,9 @@ class Resolver
             if ($value instanceof Deferred) {
                 $value = $value->source();
             }
+            if ($value instanceof ArrayableValue) {
+                $value = $value->scalar();
+            }
 
             // Delegate wrapper peeling to Statamic core so future wrapper types
             // are handled upstream for free. Loop until stable because one
