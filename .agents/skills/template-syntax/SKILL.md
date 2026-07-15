@@ -20,8 +20,9 @@ At the render boundary (`src/Latte/NormalizingEngine.php` → `Content::wrapAll`
 | Input | Template shape |
 |---|---|
 | Entry / Asset / Term / Values group / assoc array | `Content` object — `->key` and `['key']` both work |
+| non-falsy Link / Select / Radio / Button Group / Code / dictionary value | stringable `ArrayableValue` — scalar when printed, structured keys via `->key` |
 | Sequential list / query result / collection | plain PHP array — `{foreach}`-able, `count()`-able |
-| Scalar / unknown object | untouched |
+| Scalar / falsy structured-string value / unknown object | untouched or reduced to its prior scalar |
 
 WHY: raw Statamic `Value` objects are always truthy and re-augment on every access; `Content` fixes truthiness, caches per key, and augments lazily (only the fields you touch — verified in tests/Feature/ContentWrapTest.php "augments only the accessed field").
 
@@ -32,6 +33,19 @@ Rules that follow:
 - Nested access chains lazily: `{$entry->author->name}` returns nested `Content` objects.
 - Iterating a `Content` (`{foreach $entry as $k => $v}`) walks ALL its fields and forces full augmentation — legal but expensive; almost never what a template author wants.
 - Tag output goes through `Content::wrap` too (`src/Latte/Support/Tags.php::fetchTag`), so `{s:...}` results have identical shapes to view data.
+
+Statamic's `ArrayableString` family acts like a scalar when printed but exposes extra data in Antlers. Latte gets equivalent data through object syntax:
+
+```latte
+{$link}          {* URL *}
+{$link->url}
+{$link->title}   {* linked Entry/Asset field *}
+{$link->alt}     {* linked Asset field *}
+{$choice->label} {* Select/Radio/Button Group label *}
+{$code->mode}    {* Code field mode *}
+```
+
+`ArrayableValue` also retains `[]` access and forwards native methods (`$link->url()`, `$link->value()`). Missing properties return null; writes throw `LogicException`. Falsy values remain scalars because PHP objects are always truthy, preserving `{if $value}` behavior. A non-empty value is an object despite printing like a string, so strict scalar identity requires `(string) $value`.
 
 ## Core concept 2: relationship fields and the Deferred proxy (the #1 confusion source)
 

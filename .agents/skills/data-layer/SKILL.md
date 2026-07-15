@@ -41,8 +41,9 @@ Read `docs/plan-data-layer-rebase.md` (design intent, rejected alternatives) and
 | Input | Output |
 |---|---|
 | `Value` | recurse on `->value()` |
-| `LabeledValue` | `->value()` (checked BEFORE ArrayableString — it extends it) |
-| `ArrayableString` | `(string)` cast |
+| non-falsy `ArrayableString` family (`ArrayableLink`, `LabeledValue`, Code, dictionary item) | `new ArrayableValue($value)` |
+| falsy `LabeledValue` | typed `->value()` scalar |
+| other falsy `ArrayableString` | `(string)` scalar |
 | query builder (`Compare::isQueryBuilder`) | recurse on `->get()` |
 | `Augmentable` or `Values` | `new Content($value)` |
 | `AugmentedCollection` / Laravel `Collection` | `wrapArray(->all())` |
@@ -61,9 +62,22 @@ Protected; called only from `wrapAll` — unit-test deferral policy through `Con
 - `isRelationship()`/`raw()` resolve the deferred closure (cheap) but do NOT augment or run queries.
 - Non-relationship Values (markdown, bard, text) must NEVER be deferred — their eager evaluation gives Latte correct scalar/truthiness semantics.
 
+### ArrayableValue semantics
+
+`ArrayableValue` (src/Data/ArrayableValue.php) preserves Statamic's dual string/structured values without forcing Latte authors back to array syntax. It wraps non-falsy `ArrayableString` instances and delegates polymorphically to their own `toArray()` implementation:
+
+- echo/`__toString()` preserves the native scalar (`$link` → URL, select → selected value, Code → code text)
+- `__get`/`ArrayAccess` expose structured keys (`$link->title`, `$choice->label`, `$code->mode`), recursively normalized through `Content::wrap` and cached per key
+- `__call` forwards source methods (`url()`, `value()`, `label()`, `data()`) and wraps returns; writes throw `LogicException`
+- `jsonSerialize()` delegates to the source, preserving native shallow Link serialization
+- `source()` returns the native `ArrayableString`; `scalar()` reproduces the addon's previous normalized scalar (`LabeledValue` keeps its typed value, all others string-cast)
+- falsy values are NEVER proxied because PHP objects are always truthy; they retain their old scalar shape so `{if}` remains correct
+
+A non-empty proxy prints like a string but is still an object: strict identity against a scalar fails unless explicitly cast. This trade-off is required for arrow-property access.
+
 ### Content::unwrap — the inverse
 
-`Content` → `->source()` (raw Augmentable/Values/array); `Deferred` → `unwrap(materialize())` (materialize-then-unwrap, **one semantic everywhere** — returning the raw `Value` would fail Latte's `is_array()` check in compiled n:attr code); arrays mapped recursively; everything else untouched.
+`Content` → `->source()` (raw Augmentable/Values/array); `Deferred` → `unwrap(materialize())` (materialize-then-unwrap, **one semantic everywhere** — returning the raw `Value` would fail Latte's `is_array()` check in compiled n:attr code); `ArrayableValue` → `->scalar()` (preserves modifier/Antlers/n:attr compatibility); arrays mapped recursively; everything else untouched.
 
 ### Content instances
 
@@ -92,12 +106,12 @@ Protected; called only from `wrapAll` — unit-test deferral policy through `Con
 
 `Resolver` (src/Data/Resolver.php) peels wrappers down to final values. It never produces wrappers.
 
-- `actual(...$values)`: first-non-null coalesce over the arguments (templates rely on `resolve($a, $b)` as a coalesce — do not "simplify" to single-arg). Per value: `Deferred` → `->source()` pre-peel, then a do/while loop over Statamic core's `Statamic\View\Blade\value()` (imported `as statamic_value`; a namespaced function autoloaded via composer `files` — future upstream wrapper types are handled for free) plus `Compare::isQueryBuilder` → `->get()` (Statamic's helper does NOT resolve query builders). The loop runs until stable because one unwrap can expose another wrapper (Value → ArrayableString); the `is_object($previous) || is_object($value)` guard bounds it since `statamic_value` only peels objects. All-null returns `$values[0] ?? null`.
+- `actual(...$values)`: first-non-null coalesce over the arguments (templates rely on `resolve($a, $b)` as a coalesce — do not "simplify" to single-arg). Per value: `Deferred` → `->source()` and `ArrayableValue` → `->scalar()` pre-peels, then a do/while loop over Statamic core's `Statamic\View\Blade\value()` (imported `as statamic_value`; a namespaced function autoloaded via composer `files` — future upstream wrapper types are handled for free) plus `Compare::isQueryBuilder` → `->get()` (Statamic's helper does NOT resolve query builders). The loop runs until stable because one unwrap can expose another wrapper (Value → ArrayableString); the `is_object($previous) || is_object($value)` guard bounds it since `statamic_value` only peels objects. All-null returns `$values[0] ?? null`.
 - `drill($value, ...$keys)`: `actual()` first, then walks each key (dot-notation segments supported), re-resolving via `actual()` after every step. `get()` tries array/ArrayAccess index, then property isset, then `method_exists` call, else null.
 - Template exposure (src/Latte/Extensions/ResolverExtension.php): **functions** `resolve` and `r` map to `Resolver::actual` (coalesce); the **filter** `resolve` maps to `Resolver::drill` (drills into keys: `{$val|resolve:'author','name'}`). Easy to confuse: function coalesces, filter drills.
 - Global helper: `resolve_value(...)` in src/helpers.php, a `function_exists`-guarded wrapper around `Resolver::actual`.
 - `Compare` is a facade — unit tests exercising Resolver need the addon TestCase bootstrapped.
-- Codec divergence to know: `Resolver` (via Statamic's helper) resolves a non-string-backed `ArrayableString` via `->value()`, while `Content::wrap` string-casts it. Intentional; don't "align" them.
+- Codec divergence to know: a raw non-string-backed `ArrayableString` passed directly to `Resolver` resolves via Statamic's `->value()`, while an `ArrayableValue` created at the render boundary resolves through `->scalar()` to preserve its prior template scalar. Intentional; don't "align" them.
 
 ## Normalizer: deprecated shim + THE RENAME HAZARD
 
