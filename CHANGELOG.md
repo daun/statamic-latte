@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.6.0] - 2026-07-25
+
+- Add `iftext` tag and `n:iftext` attribute for testing visible content
+
 ## [2.5.0] - 2026-07-25
 
 - Support component default blocks with Latte 3.1.5

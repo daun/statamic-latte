@@ -1,6 +1,6 @@
 ---
 name: statamic-latte
-description: Authoring Latte templates (.latte files) in Statamic sites using the daun/statamic-latte addon. Covers calling Statamic tags from Latte ({s:...} tags, (s:...) expressions, the s() function), Statamic modifiers as Latte filters, entry data access (Content/Deferred wrappers), Blade-style dot view resolution, automatic layout resolution from entry data, {section}/{yield}, {slot}, inline {antlers}, and {cache}/{nocache} caching. Use when writing, reviewing, or debugging .latte templates in a Statamic project, or when Statamic tags, modifiers, or entry data are used from Latte.
+description: Authoring Latte templates (.latte files) in Statamic sites using the daun/statamic-latte addon. Covers calling Statamic tags from Latte ({s:...} tags, (s:...) expressions, the s() function), Statamic modifiers as Latte filters, entry data access (Content/Deferred wrappers), Blade-style dot view resolution, automatic layout resolution from entry data, {section}/{yield}, {slot}, {iftext}/n:iftext for visible-content tests, inline {antlers}, and {cache}/{nocache} caching. Use when writing, reviewing, or debugging .latte templates in a Statamic project, or when Statamic tags, modifiers, or entry data are used from Latte.
 ---
 
 # Writing Latte Templates in Statamic
@@ -15,7 +15,7 @@ This file covers what every template touch needs. Load depth by lookup need:
 |--------------------------|------|
 | call a Statamic tag — the three `s:` spellings, argument syntax, `$value` scope, `as:`/`content:` params, pagination, forms, blocked tags, per-tag notes | [references/statamic-tags.md](references/statamic-tags.md) |
 | understand what a template variable holds — `Content`/`Deferred` wrappers, resolve helpers, or debug a data symptom | [references/data.md](references/data.md) |
-| resolve view names, layouts, or compose across engines — dot syntax, automatic layouts, `{section}`/`{yield}`, `{slot}`, `{antlers}` | [references/views-and-composition.md](references/views-and-composition.md) |
+| resolve view names, layouts, or compose across engines — dot syntax, automatic layouts, `{section}`/`{yield}`, `{slot}`, `{iftext}`, `{antlers}` | [references/views-and-composition.md](references/views-and-composition.md) |
 | cache output — `{cache}` fragment caching, `{nocache}` static-cache holes, the compiled-template cache | [references/caching.md](references/caching.md) |
 
 ## Views and layouts in one minute

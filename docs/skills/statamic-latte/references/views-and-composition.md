@@ -1,6 +1,6 @@
 # Views, Layouts, and Cross-Engine Composition
 
-How `.latte` views are found, how layouts are applied, and the tags that bridge Statamic's composition vocabulary: `{section}`/`{yield}`, `{slot}`, `{antlers}`.
+How `.latte` views are found, how layouts are applied, and the tags that bridge Statamic's composition vocabulary: `{section}`/`{yield}`, `{slot}`, `{iftext}`, `{antlers}`.
 
 ## Contents
 - View name resolution
@@ -8,6 +8,7 @@ How `.latte` views are found, how layouts are applied, and the tags that bridge 
 - Page + layout pattern
 - {section} / {yield}
 - {slot} / n:slot
+- {iftext} / n:iftext
 - {antlers} — inline Antlers
 
 ## View name resolution
@@ -101,6 +102,29 @@ Define content in one place, output it in another — mapping to Antlers' identi
 ```
 
 Omitting a slot in the embed falls back to the default content defined in the partial — standard `{embed}`/`{block}` semantics from the base skill apply (isolated block layer, variable scoping).
+
+## {iftext} / n:iftext
+
+Latte's own `n:ifcontent` drops an element only when it rendered **nothing at all**. `{iftext}` drops it when the output holds no **visible** content — tags are stripped before the emptiness test, so empty wrapper markup no longer keeps the element alive. Think `innerText` where `n:ifcontent` is `innerHTML`. This is what you usually want around a CMS field: a Bard field that rendered `<p>&nbsp;</p>`, or a partial that emitted an empty `<span>`, counts as blank.
+
+```latte
+<div n:iftext><p></p><span>  </span><!-- note --></div>   {* dropped *}
+<div n:iftext><h2>Hello</h2></div>                        {* kept *}
+```
+
+Elements that render on their own count as content even though they hold no text — an image, an embed, a form control:
+
+```latte
+<figure n:iftext><img src="{$image->url}" alt=""></figure>   {* kept *}
+<div n:iftext><form><input type="email"></form></div>        {* kept *}
+```
+
+- Paired form `{iftext}…{/iftext}` renders its content only if it holds text; supports `{else}`.
+- `n:inner-iftext` keeps the element and drops only the content.
+- The test itself is `\Daun\StatamicLatte\Latte\Support\Html::hasText()`, callable from PHP.
+- Content elements: `img`, `picture`, `svg`, `video`, `audio`, `iframe`, `embed`, `object`, `canvas`, `script`, `hr`, `table`, `form`, `input`, `button`, `select`, `textarea`, `progress`, `meter`. Adjust via `Html::$renderingElements`.
+- Blank means whitespace, `&nbsp;`, zero-width characters, `<br>`, HTML comments, and the contents of `<style>`/`<template>`.
+- Like `n:ifcontent`, it buffers output, so it is a **runtime** test on rendered HTML, not a compile-time look at the source. On a void element (`<img n:iftext>`) it is a compile error.
 
 ## {antlers} — inline Antlers
 

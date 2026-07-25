@@ -309,6 +309,48 @@ The `n:slot` attribute is also available (mirroring `n:block`) and works on both
 {/embed}
 ```
 
+### Conditional content
+
+#### Iftext
+
+Latte's built-in [`n:ifcontent`](https://latte.nette.org/en/tags#toc-n-ifcontent) omits an element when
+it renders no output at all. Empty markup still counts as output, though, so a wrapper around an empty
+`<p>` or a Bard field that rendered nothing but `<p>&nbsp;</p>` survives.
+
+The `iftext` tag tests for *visible* content instead. Tags are stripped from the rendered output before
+the emptiness check — think `innerText` where `n:ifcontent` is `innerHTML`:
+
+```latte
+{* dropped: no text, nothing that renders *}
+<div n:iftext><p></p><span>  </span><!-- note --></div>
+
+{* kept: text survives stripping *}
+<div n:iftext><h2>Hello</h2></div>
+```
+
+Elements that render on their own — images, embeds, form controls — count as content even though they
+hold no text:
+
+```latte
+{* both kept *}
+<figure n:iftext><img src="cat.jpg" alt=""></figure>
+<div n:iftext><form><input type="email"></form></div>
+```
+
+It works as a paired tag too, optionally with `{else}`:
+
+```latte
+{iftext}
+    {$page->body}
+{else}
+    <p>Nothing to show yet.</p>
+{/iftext}
+```
+
+The elements that count as content on their own are `img`, `picture`, `svg`, `video`, `audio`,
+`iframe`, `embed`, `object`, `canvas`, `script`, `hr`, `table`, `form`, `input`, `button`, `select`,
+`textarea`, `progress` and `meter`. Adjust the list in a service provider if your markup needs it:
+
 ### Caching
 
 #### Cache

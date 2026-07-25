@@ -22,7 +22,7 @@ Five pieces, all wired from one class (`src/ServiceProvider.php`):
 2. **NormalizingEngine render boundary** — `src/Latte/NormalizingEngine.php` extends `Miko\LaravelLatte\LatteEngine`, overriding only `get()`. Every piece of data entering a `.latte` render passes `Content::wrapAll()`; every rendered string passes `Sections::resolve()` on the way out. This is THE choke point between Statamic's data model and Latte.
 3. **Data layer** (`src/Data/`) — `Content` wraps Statamic Values/Augmentables so they behave sanely in Latte (`{if}` truthiness, `->prop` access, iteration); `Deferred` postpones expensive relationship augmentation; `Resolver` unwraps values to their final scalar/object form; `Normalizer` is a deprecated delegating shim (kept until 3.0 because already-compiled templates on user sites reference it — do not delete).
 4. **Tag bridge** (`src/Latte/Extensions/TagExtension.php`, `src/Latte/Extensions/Nodes/TagNode.php`, `src/Latte/Support/Tags.php`, `TagArguments.php`, `TagMethodSyntax.php`, `TagExpressionSyntax.php`, `src/Latte/Loaders/TagMethodLoader.php`) — lets templates call any Statamic tag as `{s:collection ...}`, `{s:link /}`, or the inline expression form `(s:...)`. Statamic resolves tag methods at runtime, Latte registers tags at compile time — the bridge reconciles that via source rewriting before compilation.
-5. **Extension set + loaders** — nine addon Latte extensions (list below) add Statamic behaviors ({antlers}, {cache}/{nocache}, layout auto-resolution, modifiers as filters, {section}/{yield}, {slot}, n:attr normalization, resolve helpers, s: tags). `LaravelViewLoader` makes Latte resolve templates through Laravel's view finder (dot notation, namespaces, relative paths); `TagMethodLoader` decorates it to rewrite Statamic tag syntax in the source.
+5. **Extension set + loaders** — ten addon Latte extensions (list below) add Statamic behaviors ({antlers}, {cache}/{nocache}, layout auto-resolution, modifiers as filters, {section}/{yield}, {slot}, {iftext}, n:attr normalization, resolve helpers, s: tags). `LaravelViewLoader` makes Latte resolve templates through Laravel's view finder (dot notation, namespaces, relative paths); `TagMethodLoader` decorates it to rewrite Statamic tag syntax in the source.
 
 ## Where things live
 
@@ -42,6 +42,7 @@ Five pieces, all wired from one class (`src/ServiceProvider.php`):
 | `src/Latte/Extensions/AntlersExtension.php` | `{antlers}...{/antlers}` islands rendered by the Antlers engine |
 | `src/Latte/Extensions/AttributeNormalizationExtension.php` | Compiler pass unwrapping Content in n:attributes |
 | `src/Latte/Extensions/CacheExtension.php` | `{cache}` / `{nocache}` tags |
+| `src/Latte/Extensions/IfTextExtension.php` | `{iftext}` / `n:iftext` |
 | `src/Latte/Extensions/LayoutExtension.php` | Auto-resolves layout from Statamic entry data (`current_layout`) |
 | `src/Latte/Extensions/ModifierExtension.php` | Exposes all Statamic modifiers as Latte filters (context arg is deliberately `[]`) |
 | `src/Latte/Extensions/ResolverExtension.php` | `resolve()` / `r()` template functions + filters |
@@ -51,6 +52,7 @@ Five pieces, all wired from one class (`src/ServiceProvider.php`):
 | `src/Latte/Extensions/Nodes/TagNode.php` | Compile-time node for `{s:*}` tags; holds the `$unsupportedTags` blocklist |
 | `src/Latte/Extensions/Nodes/AntlersNode.php` | Extracts `{antlers}` bodies to temp `.antlers.html` views |
 | `src/Latte/Extensions/Nodes/CacheNode.php` / `NocacheNode.php` | Compile `{cache}` / `{nocache}` bodies |
+| `src/Latte/Extensions/Nodes/IfTextNode.php` | Compile `{iftext}`; buffers output and tests it for visible text |
 | `src/Latte/Extensions/Nodes/SectionNode.php` / `YieldNode.php` | Compile `{section}` / `{yield}` |
 | `src/Latte/Extensions/Nodes/Concerns/ExtractsToTemporaryView.php` | Trait: captures raw tag bodies and persists them as content-addressed temp views |
 | `src/Latte/Support/Tags.php` | Runtime tag fetching/normalization (paginator recovery, result wrapping) |
@@ -58,6 +60,7 @@ Five pieces, all wired from one class (`src/ServiceProvider.php`):
 | `src/Latte/Support/TagMethodSyntax.php` / `TagExpressionSyntax.php` | Source-level rewrites of `{s:tag:method}` and `(s:...)` forms |
 | `src/Latte/Support/Sections.php` | Runtime store for sections; `\x00`-delimited yield placeholders resolved post-render |
 | `src/Latte/Support/Cache.php` | Runtime backing for `{cache}` (key scope, store access) |
+| `src/Latte/Support/Html.php` | Runtime backing for `{iftext}`: `hasText()` + the `$renderingElements` list (not exposed to templates) |
 
 ### tests/
 

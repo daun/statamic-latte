@@ -26,7 +26,7 @@ Reference-backed expert. `SKILL.md` carries the always-needed core (one-minute o
 | `SKILL.md` | Addon overview, one-minute summaries (views/layouts, data shapes, three tag spellings, modifiers), top gotchas, routing table |
 | `references/statamic-tags.md` | The `s:` bridge: spellings, argument syntax, body scope/result dispatch, `as:`/`content:`, pagination, forms, blocked tags, per-tag notes, reserved-syntax warning |
 | `references/data.md` | Content/Deferred wrappers, access rules, resolve helpers, attribute behavior, symptom → cause table |
-| `references/views-and-composition.md` | View name resolution, automatic layouts, `{section}`/`{yield}`, `{slot}`, `{antlers}` interop |
+| `references/views-and-composition.md` | View name resolution, automatic layouts, `{section}`/`{yield}`, `{slot}`, `{iftext}`, `{antlers}` interop |
 | `references/caching.md` | `{cache}` fragment caching, `{nocache}` static-cache holes, compiled-template cache |
 
 ## Out of scope
