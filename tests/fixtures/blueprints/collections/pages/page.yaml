@@ -77,3 +77,26 @@ tabs:
                   handle: heading
                   field:
                     type: text
+                -
+                  handle: body
+                  field:
+                    type: markdown
+          -
+            handle: summary
+            field:
+              type: bard
+          -
+            handle: story
+            field:
+              type: bard
+              sets:
+                quote:
+                  fields:
+                    -
+                      handle: text
+                      field:
+                        type: text
+                    -
+                      handle: note
+                      field:
+                        type: markdown

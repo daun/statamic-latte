@@ -53,7 +53,7 @@ The layout is a normal Latte parent template; pages just fill its blocks:
 
 {block content}
     <h1>{$page->title}</h1>
-    <div>{$page->content|noescape}</div>
+    <div>{$page->content}</div>
 {/block}
 ```
 

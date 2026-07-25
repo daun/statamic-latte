@@ -94,7 +94,7 @@ Two deliberate deviations from Antlers:
 9. Printing an **array** into a scalar attribute throws (`<span title={(s:nav:breadcrumbs)}>` — "array is not allowed"). Loop or resolve iterable results first.
 10. Keep `{yield}` and `{nocache}` **outside** `{cache}` blocks, and note a `{cache}` block whose output is `''`/`'0'` never caches ([caching.md](references/caching.md)).
 11. `{s:tag}` block form requires the tag to be registered when the template **compiles** — after adding an addon/tag, run `php artisan view:clear`. The `(s:...)` and `s()` forms resolve at runtime and are immune.
-12. HTML-bearing fields (bard, markdown) print escaped like everything else in Latte — output them with `{$entry->content|noescape}`.
+12. HTML-bearing fields (bard, markdown, redactor) print **unescaped** — the addon marks them by fieldtype, so `{$entry->content}` needs no `|noescape`. Everything else, including a text field holding `<a>`, is still escaped; so is a modifier's output ([data.md](references/data.md)).
 13. Looping a single `Content` object (`{foreach $entry as $k => $v}`) walks **all its fields** and forces full augmentation — only lists are arrays; single things are objects.
 14. Several Statamic core tags are compile-time blocked in favor of native Latte: `s:partial` → `{include}`/`{embed}`, `s:foreach` → `{foreach}`, `s:switch` → `{switch}`, `s:yield`/`s:section` → `{yield}`/`{section}`, `s:cache` → `{cache}`, `s:dump` → `{dump}`, etc. The compile error names the alternative.
 15. `{s:svg}` inside a pair body gets HTML-escaped — self-close it: `{s:svg src: "logo", class: "icon" /}`.

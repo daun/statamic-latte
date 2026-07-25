@@ -28,7 +28,7 @@ class Resolver
             if ($value instanceof Deferred) {
                 $value = $value->source();
             }
-            if ($value instanceof ArrayableValue) {
+            if ($value instanceof ArrayableValue || $value instanceof HtmlValue) {
                 $value = $value->scalar();
             }
 

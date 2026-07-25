@@ -191,6 +191,17 @@ To list individual error messages, read them from the `form:create` capture
 <h1>{$title|upper|truncate:50}</h1>
 ```
 
+### HTML fields
+
+Latte escapes every printed value, which is what you want for a title and wrong for a
+markdown field. Fields whose **fieldtype** renders HTML during augmentation — `bard`,
+`markdown`, `redactor` — are recognized and printed as markup, so `|noescape` is not
+needed:
+
+```latte
+<h1>{$entry->title}</h1>       {* text field → escaped, even if it holds <a> *}
+<div>{$entry->content}</div>   {* markdown field → <p>…</p>, as markup *}
+```
 ### Resolving values
 
 Most values are augmented and stringified automatically on print, so you rarely need to

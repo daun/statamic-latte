@@ -54,13 +54,20 @@ Rarely needed — printing and property access already resolve automatically. Fo
 
 ## Escaping and HTML fields
 
-Latte's context-aware auto-escaping applies to every printed value, including augmented Statamic data. HTML-bearing fields (bard, markdown) therefore print as visible tags unless you opt out:
+Latte's context-aware auto-escaping applies to every printed value, including augmented Statamic data — with one addon-specific exception: fields whose **fieldtype** renders HTML during augmentation (`bard`, `markdown`, `redactor`) are wrapped in an `HtmlValue` and print as markup, no `|noescape` needed:
 
 ```latte
-{$entry->content|noescape}
+{$entry->content}          {* markdown → <p>…</p>, unescaped *}
+{$entry->title}            {* text → escaped, even if it holds <a> *}
 ```
 
-That is stock Latte behavior, not a wrapper effect — everything in the base skill's escaping rules applies unchanged.
+The decision comes from the fieldtype, never from the string, so a title containing `<a>` stays escaped. Details:
+
+- Only **HTML text context** is affected. In an attribute, URL or `<script>`, Latte still escapes an `HtmlValue` (tags are converted to text for attributes) — the marker opts out of one escaper, not out of context-aware escaping.
+- **Statamic modifiers drop the marking**: `{$entry->content|widont}` prints escaped, because the output is the modifier's, not Statamic's. Add `|noescape` to modifier chains you trust.
+- **Latte's own filters branch on `HtmlStringable`** and keep doing so: content-aware ones (`stripTags`, `trim`, `spaceless`, `indent`, `replace`, `repeat`) re-wrap their result in `Latte\Runtime\Html`, so it still prints raw; `stripHtml` flips the content type to Text (it decodes entities) and its result is escaped again; classic ones (`upper`, `truncate`, `substr`, …) return a plain escaped string; `breaklines` escapes its input, as it does for any value. An `HtmlValue` is accepted wherever Latte's own `Html` is, plus `|length` (it's `Countable`, so it survives `declare(strict_types=1)` in compiled templates and reports the markup's character count).
+- Bard **with sets** marks its own text sets (`{$set->text}` where `type === 'text'`) and, like grid rows and replicator sets, any nested markdown/bard field — again by fieldtype.
+- Extend or disable the list from a service provider: `HtmlValue::$fieldtypes[] = 'my_editor'`, or `HtmlValue::$fieldtypes = []` to escape everything and go back to explicit `|noescape`.
 
 ## Attributes and wrapped data
 
@@ -83,7 +90,7 @@ Printing an **array** into a scalar attribute throws ("array is not allowed") �
 | `{ifset $related}` true though the field is empty | `ifset` is shape-dependent; use `{if $related}` |
 | `\|length` shows 2 but the CMS lists 3 | the third is a draft; counts follow the published set, matching `{foreach}` |
 | `resolve($a, $b)` returned `$b`'s value | that's the coalesce: first **non-null** wins. To drill into keys use the `\|resolve` filter |
-| bard/markdown prints literal `<p>` as text | auto-escaping; add `\|noescape` |
+| bard/markdown prints literal `<p>` as text | the value lost its `HtmlValue` marking — a modifier ran on it, or the data didn't come from an augmented field. Add `\|noescape` |
 | modifier behaves differently than Antlers | modifiers get an empty context; and a same-named Latte filter shadows the modifier entirely |
 | `{title}` throws a syntax error | no key hoisting — write `{$value->title}` / `{$entry->title}` |
 | `$entry->delete()` throws | destructive methods blocked — wrappers are read-only |

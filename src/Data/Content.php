@@ -56,9 +56,13 @@ class Content implements ArrayAccess, IteratorAggregate
 
     /**
      * @param  Augmentable|Values|array<string, mixed>  $source
+     * @param  list<string>  $htmlKeys  Keys holding rendered HTML, when the
+     *                                  source itself knows better than the
+     *                                  fieldtype (see {@see wrapSets()}).
      */
     public function __construct(
         protected Augmentable|Values|array $source,
+        protected array $htmlKeys = [],
     ) {}
 
     public function __get(string $key): mixed
@@ -123,7 +127,13 @@ class Content implements ArrayAccess, IteratorAggregate
             return $this->cache[$key];
         }
 
-        return $this->cache[$key] = static::wrap($this->rawValue($key));
+        $value = static::wrap($this->rawValue($key));
+
+        if (in_array($key, $this->htmlKeys, true)) {
+            $value = HtmlValue::mark($value);
+        }
+
+        return $this->cache[$key] = $value;
     }
 
     protected function rawValue(string $key): mixed
@@ -132,8 +142,11 @@ class Content implements ArrayAccess, IteratorAggregate
             return $this->source[$key] ?? null;
         }
         if ($this->source instanceof Values) {
-            // offsetGet triggers augmentation, returns the already-augmented value.
-            return $this->source[$key] ?? null;
+            // Read the underlying Value off the proxied collection rather than
+            // through offsetGet: both augment, but offsetGet discards the Value
+            // afterwards, and with it the fieldtype wrap() needs to recognize
+            // markdown/bard fields nested in grids, replicators and sets.
+            return $this->source->getProxiedInstance()->get($key);
         }
 
         // Augmentable: augmentedValue() returns a lazy Value, normalized later.
@@ -224,13 +237,14 @@ class Content implements ArrayAccess, IteratorAggregate
      *   - single augmented thing (Entry/Asset/Term, Values group/grid row) -> Content
      *   - associative map (keyed collection / keyed array)                 -> Content
      *   - sequential list (list collection / list array)                  -> plain array
+     *   - HTML-bearing field (markdown, bard, ...)                        -> HtmlValue
      *   - scalars / unknown objects                                       -> untouched
      */
     public static function wrap(mixed $value): mixed
     {
         // Unwrap lazy single values first.
         if ($value instanceof Value) {
-            return static::wrap($value->value());
+            return static::wrapValue($value);
         }
         if ($value instanceof ArrayableString) {
             $wrapped = new ArrayableValue($value);
@@ -257,6 +271,68 @@ class Content implements ArrayAccess, IteratorAggregate
         }
 
         return $value;
+    }
+
+    /**
+     * Augment a Value and wrap the result, marking it as safe HTML when the
+     * field is one Statamic renders markup for (markdown, bard, ...).
+     *
+     * The fieldtype decides, not the content: a text field is escaped even if
+     * it happens to hold `<em>`, and an HTML field is trusted even if it holds
+     * none. That's the whole point — it removes the `|noescape` ritual without
+     * ever guessing at a string.
+     */
+    protected static function wrapValue(Value $value): mixed
+    {
+        $augmented = $value->value();
+
+        if (! HtmlValue::isHtmlFieldtype($value->fieldtype())) {
+            return static::wrap($augmented);
+        }
+
+        // A bard field configured with sets augments to a list of Values
+        // instead of one HTML string. Only some of those are HTML.
+        if (is_array($augmented)) {
+            return static::wrapSets($augmented);
+        }
+
+        return HtmlValue::mark(static::wrap($augmented));
+    }
+
+    /**
+     * Wrap the sets of a bard field.
+     *
+     * Bard splits its content into the sets defined in the blueprint plus the
+     * rendered markup between them, which it hands over as synthesized `text`
+     * sets. Those are HTML; the blueprint sets are ordinary fields and keep
+     * their own escaping (their nested markdown/bard fields are recognized on
+     * access, by fieldtype, like anywhere else).
+     *
+     * @param  array<int, mixed>  $sets
+     * @return array<int, mixed>
+     */
+    protected static function wrapSets(array $sets): array
+    {
+        return array_map(
+            fn ($set) => static::isBardTextSet($set)
+                ? new self($set, htmlKeys: ['text'])
+                : static::wrap($set),
+            $sets,
+        );
+    }
+
+    /**
+     * Is this one of bard's own text sets?
+     *
+     * A synthesized text set is exactly `['type' => 'text', 'text' => $html]`.
+     * Matching the full key signature — not just the type — keeps a
+     * blueprint set that happens to be named `text` from being trusted.
+     */
+    protected static function isBardTextSet(mixed $set): bool
+    {
+        return $set instanceof Values
+            && array_keys($set->toRawArray()) === ['type', 'text']
+            && $set['type'] === 'text';
     }
 
     /**
@@ -289,9 +365,11 @@ class Content implements ArrayAccess, IteratorAggregate
             // a plain array / augmentable, never a proxy object.
             return static::unwrap($value->materialize());
         }
-        if ($value instanceof ArrayableValue) {
+        if ($value instanceof ArrayableValue || $value instanceof HtmlValue) {
             // Preserve the scalar value modifiers and other reverse boundaries
-            // received before ArrayableValue added object-access syntax.
+            // received before these wrappers existed. HTML marking is dropped
+            // on the way out: what a modifier returns is its own output, and
+            // only Statamic's augmentation is trusted to produce safe markup.
             return $value->scalar();
         }
         if (is_array($value)) {
