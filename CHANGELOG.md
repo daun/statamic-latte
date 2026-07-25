@@ -1,12 +1,9 @@
 # Changelog
 
-## [2.7.0] - 2026-07-25
+## [2.6.0] - 2026-07-25
 
 - Smart escaping for fieldtypes with html output
 - Add `n:href` attribute to mark current/external/download links
-
-## [2.6.0] - 2026-07-25
-
 - Add `iftext` tag and `n:iftext` attribute for testing visible content
 
 ## [2.5.0] - 2026-07-25
@@ -83,6 +80,7 @@
 
 - Initial release
 
+[2.6.0]: https://github.com/daun/statamic-latte/releases/tag/2.6.0
 [2.5.0]: https://github.com/daun/statamic-latte/releases/tag/2.5.0
 [2.4.0]: https://github.com/daun/statamic-latte/releases/tag/2.4.0
 [2.3.2]: https://github.com/daun/statamic-latte/releases/tag/2.3.2
