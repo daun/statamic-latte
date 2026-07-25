@@ -65,7 +65,7 @@ Exempts a region from Statamic [static caching](https://statamic.dev/static-cach
 
 Limitations:
 
-- Works only with **application-level ("half measure") static caching**. Full file-based caching serves HTML straight from the web server — no PHP runs, nothing fills the hole (the JS mechanism that full-measure needs isn't implemented in this addon).
+- Running `view:clear` without also clearing the static page cache breaks region rendering (the region's extracted view lives in the compiled-views dir) until affected pages re-cache.
 - **No nesting with `{cache}`**: a `{nocache}` inside `{cache}` gets its one-time placeholder markup frozen into the fragment — the "dynamic" region is served stale silently.
 - The body is extracted and compiled as a separate view — it sees the page's cascade data, but treat it as a self-contained region.
 

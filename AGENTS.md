@@ -32,7 +32,6 @@ composer test                                             # Run all tests
 
 ## Gotchas
 
-- `nocache` tag works only with app-level static caching, not file-based
 - Nested cache/nocache not supported
 - PHPStan runs at level 5 with no generic type checking (performance)
 

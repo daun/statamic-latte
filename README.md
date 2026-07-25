@@ -378,30 +378,29 @@ Use the `cache` tag to cache parts of a view.
 
 #### Nocache
 
-The `nocache` tag can be used to exempt part of a view from
-[static caching](https://statamic.dev/static-caching).
+The `nocache` tag can be used to exempt part of a view from [static caching](https://statamic.dev/static-caching).
+Both [caching strategies](https://statamic.dev/static-caching#caching-strategies) are supported.
 
 ```latte
 {include 'partials.nav', handle: main}
- 
+
 {nocache} 
     {if $logged_in}
-        Welcome back, {$current_user->name}
+        Welcome back, {$user->name}
     {else}
         Hello, Guest!
     {/if}
 {/nocache}
- 
+
 {block content}{/block}
 ```
 
 #### Limitations
 
-The `nocache` tag is only supported for application-level static caching. Full file-based caching
-requires JavaScript for `nocache` to work, which isn't yet implemented in this addon. See
-[Caching Strategies](https://statamic.dev/static-caching#caching-strategies) for details.
+Clearing compiled views without also clearing the static page cache will break
+region rendering until the affected pages are re-cached.
 
-Nesting `cache` and `nocache` is also not yet supported. The following **will not work**:
+Nesting `cache` and `nocache` is not yet supported. The following **will not work**:
 
 ```latte
 {cache}

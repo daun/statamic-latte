@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.7.0] - 2026-07-25
+
+- Add `nocache` support for full file-based static caching
+
 ## [2.6.0] - 2026-07-25
 
 - Smart escaping for fieldtypes with html output
@@ -80,6 +84,7 @@
 
 - Initial release
 
+[2.7.0]: https://github.com/daun/statamic-latte/releases/tag/2.7.0
 [2.6.0]: https://github.com/daun/statamic-latte/releases/tag/2.6.0
 [2.5.0]: https://github.com/daun/statamic-latte/releases/tag/2.5.0
 [2.4.0]: https://github.com/daun/statamic-latte/releases/tag/2.4.0
