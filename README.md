@@ -395,12 +395,10 @@ Both [caching strategies](https://statamic.dev/static-caching#caching-strategies
 {block content}{/block}
 ```
 
-#### Limitations
+#### Nesting
 
-Clearing compiled views without also clearing the static page cache will break
-region rendering until the affected pages are re-cached.
-
-Nesting `cache` and `nocache` is not yet supported. The following **will not work**:
+The `cache` and `nocache` tags can be nested in either direction. A `nocache` region inside a
+`cache` block stays dynamic even when the surrounding fragment is served from cache:
 
 ```latte
 {cache}

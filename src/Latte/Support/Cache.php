@@ -10,6 +10,70 @@ use Statamic\Facades\URL;
 
 class Cache
 {
+    /**
+     * Stack of open fragments, one per cache tag currently capturing output.
+     *
+     * @var array<int, ?array{0: Repository, 1: string, 2: ?Carbon}>
+     */
+    protected static array $fragments = [];
+
+    /**
+     * Open a cache fragment: on a hit, echo it and return false; otherwise
+     * start capturing and return true. Balance with close() or abort().
+     */
+    public static function open(?array $params, string $contents): bool
+    {
+        if (! static::enabled($params)) {
+            static::$fragments[] = null;
+
+            return true;
+        }
+
+        $store = static::store($params);
+        $key = static::key($params, $contents);
+
+        if ($cached = $store->get($key)) {
+            $html = is_array($cached) ? ($cached['html'] ?? '') : $cached;
+            $regions = is_array($cached) ? ($cached['regions'] ?? []) : [];
+            echo NoCache::replay($html, $regions);
+
+            return false;
+        }
+
+        static::$fragments[] = [$store, $key, static::expires($params)];
+        NoCache::startCapture();
+        ob_start(fn () => '');
+
+        return true;
+    }
+
+    /** Store the captured fragment with its nocache regions, then echo it. */
+    public static function close(): void
+    {
+        if (! $fragment = array_pop(static::$fragments)) {
+            return;
+        }
+
+        [$store, $key, $expires] = $fragment;
+        $html = ob_get_clean();
+        $regions = NoCache::stopCapture();
+
+        $store->put($key, compact('html', 'regions'), $expires);
+
+        echo $html;
+    }
+
+    /** Discard an open fragment after an error during capture. */
+    public static function abort(): void
+    {
+        if (! array_pop(static::$fragments)) {
+            return;
+        }
+
+        ob_end_clean();
+        NoCache::stopCapture();
+    }
+
     public static function enabled(?array $params = []): bool
     {
         $main = $params[0] ?? null;

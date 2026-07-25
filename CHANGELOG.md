@@ -3,6 +3,7 @@
 ## [2.7.0] - 2026-07-25
 
 - Add `nocache` support for full file-based static caching
+- Support nesting `cache` and `nocache` tags in either direction
 
 ## [2.6.0] - 2026-07-25
 

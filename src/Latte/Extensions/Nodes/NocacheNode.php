@@ -36,7 +36,7 @@ final class NocacheNode extends StatementNode
     public function print(PrintContext $context): string
     {
         return $context->format(
-            'echo app("Statamic\StaticCaching\NoCache\BladeDirective")->handle(%dump, ["__layout_parent" => $this->getName()] + %node); %line;',
+            'echo \Daun\StatamicLatte\Latte\Support\NoCache::placeholder(%dump, ["__layout_parent" => $this->getName()] + %node); %line;',
             $this->saveContentToView(),
             $this->args,
             $this->position,

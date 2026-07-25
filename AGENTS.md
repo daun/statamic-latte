@@ -32,7 +32,7 @@ composer test                                             # Run all tests
 
 ## Gotchas
 
-- Nested cache/nocache not supported
+- Nested `nocache` inside `nocache` not supported (raw-text capture ends at the first closing tag)
 - PHPStan runs at level 5 with no generic type checking (performance)
 
 ## Rules

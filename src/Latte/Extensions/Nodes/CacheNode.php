@@ -32,29 +32,19 @@ final class CacheNode extends StatementNode
     {
         return $context->format(
             <<<'XX'
-                $ʟ_params = %node;
-                $ʟ_cache = \Daun\StatamicLatte\Latte\Support\Cache::class;
-                if ($ʟ_cache::enabled($ʟ_params)) {
-                    $ʟ_store = $ʟ_cache::store($ʟ_params);
-                    $ʟ_key = $ʟ_cache::key($ʟ_params, %dump);
-                    $ʟ_expires = $ʟ_cache::expires($ʟ_params);
-                    if ($ʟ_output = $ʟ_store->get($ʟ_key)) %line {
-                        echo $ʟ_output;
-                    } else {
-                        ob_start(fn() => '');
+                if (\Daun\StatamicLatte\Latte\Support\Cache::open(%node, %dump)) %line {
+                    try {
                         %node
-                        $ʟ_output = ob_get_clean();
-                        $ʟ_store->put($ʟ_key, $ʟ_output, $ʟ_expires);
-                        echo $ʟ_output;
+                        \Daun\StatamicLatte\Latte\Support\Cache::close();
+                    } catch (\Throwable $ʟ_e) {
+                        \Daun\StatamicLatte\Latte\Support\Cache::abort();
+                        throw $ʟ_e;
                     }
-                } else {
-                    %node
                 }
                 XX,
             $this->args,
             md5($this->content->print($context)),
             $this->position,
-            $this->content,
             $this->content,
         );
     }
