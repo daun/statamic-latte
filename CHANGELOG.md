@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.7.0] - 2026-07-25
+
+- Smart escaping for fieldtypes with html output
+- Add `n:href` attribute to mark current/external/download links
+
 ## [2.6.0] - 2026-07-25
 
 - Add `iftext` tag and `n:iftext` attribute for testing visible content
