@@ -2,12 +2,6 @@
 
 use Statamic\Exceptions\TaxonomyNotFoundException;
 
-/*
- * CLASSIFICATION OVERVIEW
- * taxonomy (index/wildcard) — OK: topics taxonomy + terms fixture in place
- * taxonomy:count            — OK: returns term count from topics
- */
-
 describe('taxonomy', function () {
     test('renders terms from topics taxonomy', function () {
         $this->latte('{s:taxonomy from: topics}{$value->title}{sep}, {/sep}{/s:taxonomy}')

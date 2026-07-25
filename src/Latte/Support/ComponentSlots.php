@@ -11,18 +11,14 @@ use Latte\Compiler\Nodes\NopNode;
 use Latte\Compiler\Nodes\TextNode;
 
 /**
- * Splits a `<x-…>` component body into named slots and loose (default) content.
- * Shared by both dispatch paths: ComponentEmbed maps slots to `{embed}` blocks,
- * ComponentNode buffers them into Blade `ComponentSlot`s.
- *
- * Named slots use either `<x-slot:header>` or `<x-slot name="header">`; the
- * remaining body is the default slot.
+ * Splits a `<x-…>` component body into named `<x-slot>` elements and loose
+ * (default-slot) content. Shared by both dispatch paths, ComponentEmbed and
+ * ComponentNode.
  */
 class ComponentSlots
 {
     /**
-     * @return array{0: array<string, ElementNode>, 1: AreaNode[]} named slot
-     *                                                             elements keyed by name, plus the loose (default-slot) children
+     * @return array{0: array<string, ElementNode>, 1: AreaNode[]} named slots by name, plus loose children
      */
     public static function split(ElementNode $element, string $component): array
     {
@@ -98,8 +94,7 @@ class ComponentSlots
     public static function hasContent(array $children): bool
     {
         foreach ($children as $child) {
-            // A self-closing / empty element carries a NopNode; whitespace-only
-            // text is insignificant. Neither suppresses a default-slot fallback.
+            // NopNodes and whitespace-only text don't suppress a slot fallback.
             if ($child instanceof NopNode) {
                 continue;
             }

@@ -2,8 +2,6 @@
 
 use Illuminate\Foundation\Vite;
 
-// CLASSIFY: OK — vite build fixtures under tests/fixtures/vite/; tests assert real asset tag output
-
 describe('vite', function () {
     beforeEach(function () {
         // Point public_path() at the vite fixture directory so Vite finds the build manifest.

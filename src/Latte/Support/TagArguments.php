@@ -11,23 +11,17 @@ use Latte\Compiler\TagLexer;
 use Latte\Compiler\TagParser;
 
 /**
- * Parses Statamic-style tag arguments, allowing nested keys such as
- * `title:contains: foo` that Latte's own argument grammar would reject.
- *
- * Colons that sit *inside* a key are masked with a placeholder so Latte's
- * argument grammar accepts them, then restored on the parsed keys afterwards.
- *
- * Shared by the `{s:...}` tag and  the inline `(s:...)` expression form, e.g. `{var $x = (s:...)}`.
- * {@see TagNode} {@see TagExpressionSyntax}
+ * Parses Statamic-style tag arguments, allowing nested keys like
+ * `title:contains: foo` that Latte's argument grammar would reject: colons
+ * inside a key are masked with a placeholder, then restored after parsing.
+ * Shared by the `{s:...}` tag (TagNode) and the inline `(s:...)` expression.
  */
 class TagArguments
 {
-    /** Placeholder standing in for colons inside a parameter key while Latte parses it. */
     private const COLON_PLACEHOLDER = '__sl_colon__';
 
     /**
-     * Parse a full tag-call string such as `collection:count in: pages` into
-     * its tag name (`collection:count`) and parsed parameters.
+     * Split `collection:count in: pages` into tag name and parsed params.
      *
      * @return array{string, ArrayNode}
      */
@@ -42,10 +36,6 @@ class TagArguments
         return [$matches[1], self::parseParams($matches[2])];
     }
 
-    /**
-     * Parse just the parameter portion (`in: pages, title:contains: foo`) into
-     * an array node, restoring any masked nested-key colons.
-     */
     public static function parseParams(string $text): ArrayNode
     {
         if (trim($text) === '') {
@@ -54,9 +44,7 @@ class TagArguments
 
         $args = (new TagParser((new TagLexer)->tokenize(self::escapeNestedKeys($text))))->parseArguments();
 
-        // A key written with Latte's colon syntax (`key: value`) parses to an
-        // IdentifierNode, while the array fat-arrow syntax (`key => value`)
-        // parses to a StringNode — handle both.
+        // `key: value` parses to an IdentifierNode, `key => value` to a StringNode.
         foreach ($args->items as $item) {
             if ($item->key instanceof IdentifierNode) {
                 $item->key = new IdentifierNode(self::restoreColons($item->key->name), $item->key->position);
@@ -74,17 +62,11 @@ class TagArguments
     }
 
     /**
-     * Replace colons that sit *inside* a key with a placeholder, so Latte's
-     * argument grammar sees a plain key. Colons inside quoted strings are left
-     * untouched.
-     *
-     * A colon followed by a non-word character (whitespace, $, a quote, …) is
-     * always the key/value separator. A colon followed by a word character is
-     * masked only when the key continues past it — that is, when the bareword
-     * segment after it is itself followed by another colon (deeper nesting,
-     * `title:contains:Layout`) or by a `=>` arrow (which is the real separator,
-     * `key:sub => val`). Otherwise that colon separates the key from a bareword
-     * value, so `title:contains:Layout` parses like `title:contains: Layout`.
+     * Mask colons inside keys with a placeholder; quoted strings are untouched.
+     * A colon before a word character is only masked when the key continues
+     * past it (another colon or a `=>` follows the bareword) — otherwise it
+     * separates the key from a bareword value: `title:contains:Layout` parses
+     * like `title:contains: Layout`.
      */
     public static function escapeNestedKeys(string $text): string
     {
@@ -118,10 +100,7 @@ class TagArguments
         return $out;
     }
 
-    /**
-     * Whether a colon at the given offset continues the key (mask it) rather
-     * than separating the key from its value (leave it). See escapeNestedKeys.
-     */
+    /** Whether the colon at offset $i continues the key rather than starting the value. */
     private static function colonContinuesKey(string $text, int $i): bool
     {
         $next = $text[$i + 1] ?? '';
@@ -131,21 +110,18 @@ class TagArguments
 
         $length = strlen($text);
 
-        // Skip the bareword segment that follows this colon.
+        // Skip the following bareword and any whitespace after it.
         $j = $i + 1;
         while ($j < $length && (ctype_alnum($text[$j]) || $text[$j] === '_')) {
             $j++;
         }
-
-        // Skip any whitespace before the next significant character.
         while ($j < $length && ctype_space($text[$j])) {
             $j++;
         }
 
         $after = $text[$j] ?? '';
 
-        // Another colon means deeper key nesting; a `=` begins a `=>` arrow that
-        // is itself the separator. Either way this colon stays part of the key.
+        // Another colon = deeper nesting; `=` begins the real `=>` separator.
         return $after === ':' || $after === '=';
     }
 }

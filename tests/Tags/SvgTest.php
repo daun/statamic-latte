@@ -2,8 +2,6 @@
 
 use Statamic\Tags\Svg;
 
-// CLASSIFY: OK — fixture SVG at tests/fixtures/svg/logo.svg; tests assert inline SVG markup
-
 describe('svg', function () {
     beforeEach(function () {
         // Point public_path() at the fixtures root so public_path('svg/logo.svg') resolves.
@@ -36,7 +34,6 @@ describe('svg', function () {
     });
 
     test('pair body receives svg string — latte auto-escapes html chars in $value', function () {
-        // The tag returns a raw HTML string; Latte escapes it inside the pair body.
         $this->latte('{s:svg src: "logo"}{$value}{/s:svg}')
             ->assertSee('&lt;svg', false)
             ->assertSee('circle', false);

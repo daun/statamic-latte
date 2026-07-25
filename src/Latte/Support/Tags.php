@@ -33,9 +33,7 @@ class Tags
     /**
      * Fetch the output of a Statamic tag.
      *
-     * @param  string  $name  The tag name
-     * @param  mixed  ...$args  The tag parameters
-     * @return mixed The tag output
+     * @return mixed
      */
     public static function fetch(string $name, ...$args)
     {
@@ -43,14 +41,10 @@ class Tags
     }
 
     /**
-     * Fetch the output of a Statamic tag, handing it a rendered string as its
-     * tag-pair body (e.g. `{s:widont content: $text/}`). Lets content-consuming
-     * tags such as `widont`, `obfuscate` or addon tags like `mjml` work.
+     * Fetch a Statamic tag, handing it a rendered string as its tag-pair body,
+     * for content-consuming tags like `widont` or `obfuscate`.
      *
-     * @param  string  $name  The tag name
-     * @param  string  $content  The rendered tag-pair body
-     * @param  mixed  ...$args  The tag parameters
-     * @return mixed The tag output
+     * @return mixed
      */
     public static function fetchWithContent(string $name, string $content, ...$args)
     {
@@ -85,18 +79,15 @@ class Tags
     }
 
     /**
-     * Run a configured Statamic tag and normalize its output, rethrowing an
-     * unknown tag-method call as a friendlier exception.
+     * Run a configured Statamic tag and normalize its output.
      *
      * @param  FluentTag|mixed  $tag
      * @return mixed
      */
     protected static function fetchTag(string $name, $tag)
     {
-        // Statamic flattens a paginated query into a plain array and stashes the
-        // paginator in Blink (see GetsQueryResults::paginatedResults). Snapshot
-        // the shared slot so only a paginator created by this tag is recovered,
-        // without removing paginator state needed by Statamic or addon tags.
+        // Statamic stashes paginators in Blink (GetsQueryResults). Snapshot the
+        // shared slot so only a paginator created by this tag is recovered.
         /** @var mixed $previousPaginator */
         $previousPaginator = Blink::get('tag-paginator');
 
@@ -113,18 +104,13 @@ class Tags
             return static::normalizePaginator($paginator);
         }
 
-        // Normalize tag output to the same Content/array shapes as view data,
-        // so {foreach s('collection:pages') as $entry}{$entry->title} works.
+        // Normalize output to the same Content/array shapes as view data.
         return Content::wrap($result);
     }
 
     /**
-     * Stringify a self-closing / empty-body tag result for output.
-     *
-     * Scalars and Stringables print directly; booleans never print; Content
-     * and other wrappers are drilled to their underlying value and printed
-     * only if that resolves to a scalar/Stringable. Anything else prints
-     * nothing instead of fataling on a non-stringable object.
+     * Stringify a self-closing tag result: scalars/Stringables print, booleans
+     * don't, wrappers are drilled first, anything else prints nothing.
      */
     public static function stringifyResult(mixed $result): string
     {
@@ -132,13 +118,9 @@ class Tags
             return $value;
         }
 
-        // Drill into Content / augmented wrappers, then retry.
         return self::printableValue(Resolver::actual(Content::unwrap($result))) ?? '';
     }
 
-    /**
-     * Cast a value to its printable string, or null if it is not printable.
-     */
     private static function printableValue(mixed $value): ?string
     {
         if (is_bool($value)) {
@@ -152,10 +134,7 @@ class Tags
         return null;
     }
 
-    /**
-     * Build a friendlier exception for a call to an unknown tag method such
-     * as `{s:users:count}`, preserving the original as the previous exception.
-     */
+    /** Friendlier exception for an unknown tag method like `{s:users:count}`. */
     private static function invalidTagMethod(string $name, \BadMethodCallException $e): \BadMethodCallException
     {
         [$tag, $method] = array_pad(explode(':', $name, 2), 2, null);
@@ -171,10 +150,7 @@ class Tags
         );
     }
 
-    /**
-     * Normalize a paginator's items in place, leaving the paginator itself
-     * intact so its pagination API (total, currentPage, links, …) stays usable.
-     */
+    /** Normalize a paginator's items in place, keeping its pagination API usable. */
     protected static function normalizePaginator(AbstractPaginator $paginator): AbstractPaginator
     {
         $items = $paginator->getCollection()->map(

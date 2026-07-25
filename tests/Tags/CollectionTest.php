@@ -1,13 +1,5 @@
 <?php
 
-/*
- * CLASSIFICATION OVERVIEW
- * collection (from/sort/sep/status) — OK: should pass with pages fixture
- * collection:count                  — OK: should pass
- * collection paginate               — OK: covered in TagTest, re-verified here
- * collection:next / :previous       — INCOMPAT/FIXTURE: needs current entry in context
- */
-
 describe('collection', function () {
     test('renders published entries from pages collection', function () {
         $this->latte('{s:collection from: pages, sort: title}{$value->title}{sep}, {/sep}{/s:collection}')
@@ -42,14 +34,12 @@ describe('collection', function () {
     });
 
     test('next tag method — needs current entry context', function () {
-        // CLASSIFY: INCOMPAT — currentEntry() reads from cascade/context; not set in unit test
-        // Likely throws or returns empty; assert it compiles without parse error at minimum
+        // currentEntry() reads from the cascade, which is not set here, so the tag throws.
         expect(fn () => $this->latte('{s:collection:next}{$value->title}{/s:collection:next}'))
             ->toThrow(Error::class);
     });
 
     test('previous tag method — needs current entry context', function () {
-        // CLASSIFY: INCOMPAT — same as next; currentEntry() not available
         expect(fn () => $this->latte('{s:collection:previous}{$value->title}{/s:collection:previous}'))
             ->toThrow(Error::class);
     });

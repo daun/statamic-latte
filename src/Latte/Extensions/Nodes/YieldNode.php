@@ -9,15 +9,9 @@ use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
 
 /**
- * {yield 'name' /}
- * {yield 'name'}default content{/yield}
- *
- * Outputs the contents of a section defined anywhere (in this template, an
- * included partial, or another engine). Resolution is deferred until the whole
- * template has rendered, so a section may be defined before or after its yield.
- *
- * Use the self-closing form when there's no fallback; the paired form renders
- * its body as the default when no section was defined.
+ * {yield 'name' /} or {yield 'name'}default{/yield} — outputs a section defined
+ * anywhere, in any engine. Resolution is deferred until the whole template has
+ * rendered, so the section may be defined before or after its yield.
  */
 final class YieldNode extends StatementNode
 {

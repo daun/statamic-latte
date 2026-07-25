@@ -99,9 +99,7 @@ final class ArrayableValue implements Arrayable, ArrayAccess, Boolable, JsonSeri
         return $this->source->toBool();
     }
 
-    /**
-     * Return the scalar shape used before this value entered the proxy.
-     */
+    /** The scalar shape used before this value entered the proxy. */
     public function scalar(): mixed
     {
         return $this->source instanceof LabeledValue
@@ -109,7 +107,6 @@ final class ArrayableValue implements Arrayable, ArrayAccess, Boolable, JsonSeri
             : (string) $this->source;
     }
 
-    /** Return the original Statamic value object. */
     public function source(): ArrayableString
     {
         return $this->source;

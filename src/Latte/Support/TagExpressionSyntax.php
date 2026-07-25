@@ -2,38 +2,17 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
-use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
 use Latte\CompileException;
 use Latte\Compiler\PrintContext;
 
 /**
- * Rewrites the inline Statamic tag-call expression `(s:[tag] ...)` into an
- * equivalent `s(...)` function call, so a tag's output can be used anywhere
- * Latte accepts an expression.
- *
- *     {var $count = (s:collection:count in: pages)}
- *     {if (s:collection:count in: pages) > 5}
- *     {(s:nav:breadcrumbs)|noescape}
- *
- * each lower to a call to the registered `s()` function, e.g.
- *
- *     s('collection:count', ['in' => 'pages'])
- *
- * Like {@see TagMethodSyntax}, this runs in the source loader: Latte's lexer
- * and parser are `final`, so the loader is the only seam where the colon-laden
- * Statamic syntax (which Latte's grammar rejects) can be reconciled.
- *
- * Parameters are parsed with {@see TagArguments} — the same machinery the
- * {@see TagNode} uses — and printed back to source, so nested keys, variables and
- * barewords behave identically to the block-tag form.
+ * Rewrites the inline tag-call expression `(s:tag ...)` into an `s(...)` call
+ * in the source loader — Latte's lexer/parser are final, so the loader is the
+ * only seam for the colon-laden Statamic syntax.
  *
  * The rewrite is a catch-all: every structurally valid `(s:<tag> ...)` is
- * lowered, regardless of whether the tag is currently registered. Resolution
- * happens at runtime in `s()` → `Statamic::tag()`, which throws a
- * `TagNotFoundException` for an unknown tag. This deliberately avoids baking a
- * compile-time tag-registry snapshot into cached templates, so tags added or
- * removed at runtime are always honoured. The flip side is that `(s:<identifier>
- * ...)` is reserved syntax — do not write it as literal text.
+ * lowered, registered or not, so no tag-registry snapshot is baked into cached
+ * templates. Flip side: `(s:<identifier> ...)` is reserved syntax.
  */
 class TagExpressionSyntax
 {
@@ -61,11 +40,7 @@ class TagExpressionSyntax
         return $out;
     }
 
-    /**
-     * Given the index of an opening `(`, return the index just past its
-     * matching `)`, honouring nested parens and quoted strings; null if
-     * unbalanced.
-     */
+    /** Index just past the matching `)`, honouring nesting and quotes; null if unbalanced. */
     private static function matchParen(string $s, int $open): ?int
     {
         $depth = 0;
@@ -95,11 +70,7 @@ class TagExpressionSyntax
         return null;
     }
 
-    /**
-     * Turn the contents of a `(...)` group into an `s(...)` call, or null if it
-     * is not a Statamic tail (`s:<tag>`). Whether the tag actually exists is a
-     * runtime concern, resolved by `s()`.
-     */
+    /** Turn a `(...)` group into an `s(...)` call, or null if it's not an `s:` tail. */
     private static function rewriteCall(string $inner): ?string
     {
         $trimmed = ltrim($inner);
@@ -115,10 +86,8 @@ class TagExpressionSyntax
             return null;
         }
 
-        // A filter applied to a param value is only parsed when it is wrapped
-        // in parentheses (`in: ($x|lower)`). A bare pipe (`in: $x|lower`) is
-        // silently swallowed by Latte's argument grammar, so reject it loudly
-        // rather than dropping the filter.
+        // A bare pipe (`in: $x|lower`) is silently swallowed by Latte's argument
+        // grammar, so reject it loudly rather than dropping the filter.
         if (self::hasTopLevelPipe($call)) {
             throw new CompileException(
                 "Bare filters are not supported inside `(s:{$call})`. "
@@ -134,11 +103,7 @@ class TagExpressionSyntax
             : "(s('{$name}', {$params}))";
     }
 
-    /**
-     * Whether the text contains a filter pipe at the top level — i.e. a single
-     * `|` outside any parentheses, brackets, braces or quoted string (and not
-     * part of a `||` operator).
-     */
+    /** A single `|` outside parens/brackets/quotes that isn't part of `||`. */
     private static function hasTopLevelPipe(string $s): bool
     {
         $depth = 0;

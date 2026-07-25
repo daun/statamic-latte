@@ -16,23 +16,9 @@ use Statamic\Fields\Values;
 use Traversable;
 
 /**
- * Lazy object wrapper around a single keyed source: an augmented Statamic
- * value-set (Entry/Asset/Term, Values group/grid row) or a plain associative
- * array/map.
- *
- * Property access resolves exactly one key on demand:
- *   {$entry->title}          -> augmentedValue('title')->value()
- *   {$entry->author->name}   -> nested Content, augmented lazily
- *
- * Supports both `->key` and `['key']` so a template never guesses wrong.
- *
- * Method calls pass through to the underlying source object so custom
- * entry classes can expose logic to templates ({$page->events()}), with
- * return values wrapped and destructive methods (save/delete/...) blocked.
- *
- * Iterable too: `{foreach $content as $key => $value}` walks its keys (each
- * resolved lazily). Iterating an Augmentable forces full augmentation — that's
- * an explicit, rare act, so the cost is opt-in.
+ * Lazy read-only wrapper around a keyed source (augmented Statamic value-set or
+ * assoc array), resolving one key per `->key`/`['key']` access. Method calls
+ * pass through to the source, with destructive methods blocked.
  *
  * @implements ArrayAccess<string, mixed>
  * @implements IteratorAggregate<string, mixed>
@@ -49,16 +35,14 @@ class Content implements ArrayAccess, IteratorAggregate
         'move', 'rename', 'replace', 'reupload',
     ];
 
-    /** @var array<string, mixed> Normalized per-key cache. */
+    /** @var array<string, mixed> */
     protected array $cache = [];
 
     protected ?Augmented $augmented = null;
 
     /**
      * @param  Augmentable|Values|array<string, mixed>  $source
-     * @param  list<string>  $htmlKeys  Keys holding rendered HTML, when the
-     *                                  source itself knows better than the
-     *                                  fieldtype (see {@see wrapSets()}).
+     * @param  list<string>  $htmlKeys  Keys holding rendered HTML (see wrapSets())
      */
     public function __construct(
         protected Augmentable|Values|array $source,
@@ -142,14 +126,11 @@ class Content implements ArrayAccess, IteratorAggregate
             return $this->source[$key] ?? null;
         }
         if ($this->source instanceof Values) {
-            // Read the underlying Value off the proxied collection rather than
-            // through offsetGet: both augment, but offsetGet discards the Value
-            // afterwards, and with it the fieldtype wrap() needs to recognize
-            // markdown/bard fields nested in grids, replicators and sets.
+            // Not offsetGet: it discards the Value and with it the fieldtype
+            // wrap() needs to recognize markdown/bard nested in grids/sets.
             return $this->source->getProxiedInstance()->get($key);
         }
 
-        // Augmentable: augmentedValue() returns a lazy Value, normalized later.
         return $this->source->augmentedValue($key);
     }
 
@@ -174,7 +155,6 @@ class Content implements ArrayAccess, IteratorAggregate
             return array_keys($this->source);
         }
         if ($this->source instanceof Values) {
-            // Proxies a Collection; keys() returns field handles, no augmentation.
             return array_keys($this->source->toRawArray());
         }
 
@@ -185,16 +165,12 @@ class Content implements ArrayAccess, IteratorAggregate
         return $this->augmented->keys();
     }
 
-    /** Escape hatch: get the underlying source. */
     public function source(): Augmentable|Values|array
     {
         return $this->source;
     }
 
     /**
-     * Normalize a bag of template variables into template shapes, leaving
-     * framework internals alone.
-     *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -208,20 +184,13 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Top-level wrap with relationship deferral.
-     *
-     * A non-empty relationship Value is postponed behind a {@see Deferred}
-     * proxy so its query + augmentation only runs if the template touches it.
-     * Everything else (scalars, non-relationship Values like markdown/bard,
-     * empty relationships) is wrapped eagerly so Latte keeps correct scalar
-     * and truthiness semantics. Nested access stays lazy via Content already,
-     * so deferral is only needed at this top level.
+     * Defer non-empty relationship Values so their query only runs if the
+     * template touches them; everything else wraps eagerly to keep Latte's
+     * scalar and truthiness semantics.
      */
     protected static function wrapTopLevel(mixed $value): mixed
     {
-        // empty() is exact here: relationship raw values are entry/term/asset
-        // IDs (UUIDs or handles), never 0 or '0', so the empty('0')/empty(0)
-        // false-positive cannot occur. An empty/null raw means no relations.
+        // empty() is safe: relationship raws are IDs/handles, never 0 or '0'.
         if ($value instanceof Value
             && $value->isRelationship()
             && ! empty($value->raw())
@@ -233,36 +202,29 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Normalize Statamic data into a predictable template shape:
-     *   - single augmented thing (Entry/Asset/Term, Values group/grid row) -> Content
-     *   - associative map (keyed collection / keyed array)                 -> Content
-     *   - sequential list (list collection / list array)                  -> plain array
-     *   - HTML-bearing field (markdown, bard, ...)                        -> HtmlValue
-     *   - scalars / unknown objects                                       -> untouched
+     * Normalize Statamic data into a predictable template shape: augmented
+     * things and keyed maps -> Content, lists -> plain array, HTML fields ->
+     * HtmlValue, scalars untouched.
      */
     public static function wrap(mixed $value): mixed
     {
-        // Unwrap lazy single values first.
         if ($value instanceof Value) {
             return static::wrapValue($value);
         }
         if ($value instanceof ArrayableString) {
             $wrapped = new ArrayableValue($value);
 
-            // PHP objects are always truthy. Keep falsy values scalar so
-            // Latte conditionals retain their existing behavior.
+            // Objects are always truthy; keep falsy values scalar for Latte conditionals.
             return $wrapped->toBool() ? $wrapped : $wrapped->scalar();
         }
         if (Compare::isQueryBuilder($value)) {
             return static::wrap($value->get());
         }
 
-        // Single augmented object -> Content wrapper (object semantics).
         if ($value instanceof Augmentable || $value instanceof Values) {
             return new self($value);
         }
 
-        // Collections + arrays: shape decides. List -> array, keyed -> object.
         if ($value instanceof AugmentedCollection || $value instanceof LaravelCollection) {
             return static::wrapArray($value->all());
         }
@@ -274,13 +236,8 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Augment a Value and wrap the result, marking it as safe HTML when the
-     * field is one Statamic renders markup for (markdown, bard, ...).
-     *
-     * The fieldtype decides, not the content: a text field is escaped even if
-     * it happens to hold `<em>`, and an HTML field is trusted even if it holds
-     * none. That's the whole point — it removes the `|noescape` ritual without
-     * ever guessing at a string.
+     * Augment a Value and wrap it, marking it as safe HTML when the fieldtype
+     * (not the content) says so — that's what removes the `|noescape` ritual.
      */
     protected static function wrapValue(Value $value): mixed
     {
@@ -290,8 +247,7 @@ class Content implements ArrayAccess, IteratorAggregate
             return static::wrap($augmented);
         }
 
-        // A bard field configured with sets augments to a list of Values
-        // instead of one HTML string. Only some of those are HTML.
+        // Bard with sets augments to a list of Values; only some are HTML.
         if (is_array($augmented)) {
             return static::wrapSets($augmented);
         }
@@ -300,13 +256,8 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Wrap the sets of a bard field.
-     *
-     * Bard splits its content into the sets defined in the blueprint plus the
-     * rendered markup between them, which it hands over as synthesized `text`
-     * sets. Those are HTML; the blueprint sets are ordinary fields and keep
-     * their own escaping (their nested markdown/bard fields are recognized on
-     * access, by fieldtype, like anywhere else).
+     * Bard's synthesized `text` sets hold rendered HTML; blueprint sets are
+     * ordinary fields and keep their own escaping.
      *
      * @param  array<int, mixed>  $sets
      * @return array<int, mixed>
@@ -322,11 +273,8 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Is this one of bard's own text sets?
-     *
-     * A synthesized text set is exactly `['type' => 'text', 'text' => $html]`.
-     * Matching the full key signature — not just the type — keeps a
-     * blueprint set that happens to be named `text` from being trusted.
+     * A synthesized text set is exactly ['type' => 'text', 'text' => $html];
+     * matching the full key signature keeps a blueprint set named `text` untrusted.
      */
     protected static function isBardTextSet(mixed $set): bool
     {
@@ -336,9 +284,6 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Sequential list -> plain array of wrapped children (iterable).
-     * Associative map -> Content object (lazy, `->`/`[]` access).
-     *
      * @param  array<mixed>  $array
      */
     protected static function wrapArray(array $array): mixed
@@ -351,9 +296,8 @@ class Content implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Inverse of wrap(): peel Content wrappers back to their raw Statamic
-     * sources so values can be handed to Statamic modifiers/filters, which
-     * predate (and don't understand) the Content wrapper.
+     * Inverse of wrap(): peel wrappers back to raw Statamic values so they can
+     * be handed to modifiers/filters, which don't understand the wrappers.
      */
     public static function unwrap(mixed $value): mixed
     {
@@ -361,15 +305,11 @@ class Content implements ArrayAccess, IteratorAggregate
             return $value->source();
         }
         if ($value instanceof Deferred) {
-            // Materialize then unwrap: modifiers, n:attr and Antlers all expect
-            // a plain array / augmentable, never a proxy object.
             return static::unwrap($value->materialize());
         }
         if ($value instanceof ArrayableValue || $value instanceof HtmlValue) {
-            // Preserve the scalar value modifiers and other reverse boundaries
-            // received before these wrappers existed. HTML marking is dropped
-            // on the way out: what a modifier returns is its own output, and
-            // only Statamic's augmentation is trusted to produce safe markup.
+            // HTML marking is dropped on the way out: only Statamic's own
+            // augmentation is trusted to produce safe markup.
             return $value->scalar();
         }
         if (is_array($value)) {

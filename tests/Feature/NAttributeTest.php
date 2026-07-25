@@ -1,16 +1,10 @@
 <?php
 
 /**
- * The inline `(s:...)` sub-expression is rewritten in the source loader, before
- * Latte sees the template. These tests pin down that it therefore also works
- * inside Latte's `n:` attributes (which Latte expands into ordinary expressions
- * at compile time) — `n:if`, `n:foreach`, `n:attr`, `n:href`, interpolated
- * attribute strings — and that it keeps working when wrapped in the block-style
- * `{s:tagName}` tag.
- *
- * Note: Latte's `n:href` is intentionally not covered — it is a Nette
- * application-router feature that resolves presenter/route actions, unrelated
- * to building plain href strings, and throws without a Nette router.
+ * Pins down that the inline `(s:...)` expression — rewritten in the source
+ * loader before Latte compiles — works inside `n:` attributes and interpolated
+ * attribute strings. Latte's own Nette-router n:href is intentionally not
+ * covered; it throws without a Nette router.
  */
 describe('n:foreach', function () {
     test('iterates a tag sub-expression directly', function () {

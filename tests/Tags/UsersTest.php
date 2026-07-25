@@ -1,7 +1,5 @@
 <?php
 
-// CLASSIFY: OK — user fixtures exist; tests assert real data from alice@example.com and bob@example.com
-
 describe('users', function () {
     test('renders all user names when iterating', function () {
         $this->latte('{s:users}{$value->name}{sep}, {/sep}{/s:users}')
@@ -36,7 +34,6 @@ describe('users', function () {
     });
 
     test('s:users:count throws a friendly error for the unknown method', function () {
-        // CLASSIFY: OK — UserTags has no count() method; the proxy rethrows with guidance.
         expect(fn () => $this->latte('{s:users:count /}'))
             ->toThrow(BadMethodCallException::class, "'count' is not a valid method of the users tag");
     });

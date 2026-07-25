@@ -42,10 +42,8 @@ final class IfTextNode extends StatementNode
             [$node->else] = yield;
         }
 
-        // As `n:iftext` the whole element is omitted, so the test has to run on
-        // the element's content while the buffered output covers the element
-        // itself. Everything else — `{iftext}` and `n:inner-iftext` — already
-        // yields exactly the content to test.
+        // As `n:iftext` the whole element is omitted, so the test runs on the
+        // element's content while the buffer covers the element itself.
         if ($tag->nAttribute && $tag->prefix === Tag::PrefixNone) {
             $node->htmlElement = $tag->htmlElement;
             if (! $node->htmlElement?->content) {
@@ -63,10 +61,7 @@ final class IfTextNode extends StatementNode
             : $this->printContent($context);
     }
 
-    /**
-     * {iftext} ... {/iftext} and <div n:inner-iftext>: buffer the content and
-     * echo it only if it holds text.
-     */
+    /** {iftext} / n:inner-iftext: buffer the content, echo it only if it holds text. */
     private function printContent(PrintContext $context): string
     {
         $else = $this->else?->print($context) ?? '';
@@ -88,10 +83,7 @@ final class IfTextNode extends StatementNode
             XX;
     }
 
-    /**
-     * <div n:iftext>: buffer the element, record whether its content held text,
-     * then drop the whole element if it did not.
-     */
+    /** n:iftext: buffer the element, drop it whole if its content held no text. */
     private function printElement(PrintContext $context): string
     {
         $saved = $this->htmlElement->content;

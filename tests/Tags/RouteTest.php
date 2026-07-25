@@ -2,8 +2,6 @@
 
 use Illuminate\Routing\Router;
 
-// CLASSIFY: OK — named routes registered in beforeEach; tests assert real URL output
-
 describe('route', function () {
     beforeEach(function () {
         /** @var Router $router */

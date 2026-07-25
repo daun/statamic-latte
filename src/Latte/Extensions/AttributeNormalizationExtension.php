@@ -12,14 +12,9 @@ use Latte\Essential\Nodes\NAttrNode;
 use Latte\Extension;
 
 /**
- * Teaches Latte's native {n:attr} to accept Statamic Content objects.
- *
- * Content::wrap maps keyed arrays to a Content object so templates reach them
- * with `->`. Latte's n:attr runtime does an is_array() check, so a Content is
- * silently dropped — `<div n:attr="$attrs">` would render no attributes. This
- * pass wraps every n:attr argument in Content::unwrap(), peeling Content
- * back to a plain array at that boundary. unwrap() is a no-op for scalars and
- * strings, so the keyed forms (`n:attr="href: …, class: …"`) are unaffected.
+ * Teaches Latte's native n:attr to accept Content objects: its runtime does an
+ * is_array() check that would silently drop them, so this pass wraps every
+ * n:attr argument in Content::unwrap() (a no-op for scalars).
  */
 class AttributeNormalizationExtension extends Extension
 {

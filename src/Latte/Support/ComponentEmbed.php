@@ -19,25 +19,15 @@ use Latte\Essential\Nodes\BlockNode;
 use Latte\Essential\Nodes\EmbedNode;
 
 /**
- * Compile-time desugaring of a `<x-…>` component element into a native Latte
- * `{embed}` + `{block}` subtree.
- *
- *   <x-alert class={'large'}>          {embed components.alert, class: 'large'}
- *     <x-slot name="header">Hi</x-slot>   →   {block header}Hi{/block}
- *     Body                                     {block default}Body{/block}
- *   </x-alert>                          {/embed}
- *
- * Named `<x-slot name="x">` / `<x-slot:x>` children become filled blocks; the
- * remaining loose body becomes the `default` block. Because Latte's embed keeps
- * an isolated block layer, the component template's own `{slot …}` fallbacks
- * render when a slot is omitted, and slot content is evaluated in the caller's
- * scope — matching Blade's ergonomics.
+ * Compile-time desugaring of a `<x-…>` element into a native `{embed}` +
+ * `{block}` subtree: named slots become filled blocks, the loose body becomes
+ * the `default` block. Embed's isolated block layer gives slot fallbacks and
+ * caller-scoped slot content for free — matching Blade's ergonomics.
  */
 class ComponentEmbed
 {
     /**
-     * @param  int  $layer  A block-layer id unique to this embed (allocated by
-     *                      the compiler pass above any pre-existing embed layer).
+     * @param  int  $layer  Block-layer id unique to this embed
      */
     public static function fromElement(ElementNode $element, string $name, int $layer): EmbedNode
     {
@@ -53,9 +43,8 @@ class ComponentEmbed
     }
 
     /**
-     * Attributes become the embed's params. With a backing component class the
-     * params are replaced by a runtime spread of Components::componentData(),
-     * which merges the class's data() over the raw attributes.
+     * Attributes become the embed's params; with a backing component class,
+     * a runtime spread of Components::componentData() instead.
      */
     protected static function args(ElementNode $element, string $name): ArrayNode
     {
@@ -78,9 +67,6 @@ class ComponentEmbed
     }
 
     /**
-     * Split the component body into filled blocks: named `<x-slot>` children and
-     * the loose body (the `default` block).
-     *
      * @return BlockNode[]
      */
     protected static function blocks(ElementNode $element, string $name, int $layer): array
@@ -112,10 +98,8 @@ class ComponentEmbed
     }
 
     /**
-     * Latte's Block value object requires a Tag. HTML element nodes don't carry
-     * one (tags exist only for {…} tags / n:attributes during parsing), so we
-     * synthesise a minimal, inert one. Only its name ('block') and int layer are
-     * meaningful downstream; TagParser needs at least one positioned token.
+     * Latte's Block requires a Tag, which HTML element nodes don't carry, so we
+     * synthesise a minimal inert one with a single positioned token.
      */
     protected static function syntheticTag(ElementNode $element): Tag
     {

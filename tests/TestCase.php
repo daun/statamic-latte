@@ -39,26 +39,13 @@ abstract class TestCase extends OrchestraTestCase
     {
         parent::resolveApplicationConfiguration($app);
 
-        // Custom view directory
         $app['config']->set('view.paths', [fixtures_path('views')]);
 
-        // Pull in statamic default config
+        // Pull in statamic default config, then rewrite content paths to fixtures
         $this->resolveStatamicConfiguration($app);
-
-        // Rewrite content paths to use our test fixtures
         $this->resolveStacheStores($app);
 
-        // Create two sites for multi-site testing
-        // $app['config']->set('statamic.sites.sites', [
-        //     'default' => ['name' => 'English', 'locale' => 'en_US', 'url' => '/'],
-        //     'german' => ['name' => 'Deutsch', 'locale' => 'de_DE', 'url' => '/de/'],
-        // ]);
-
-        // Set user repository to default flat file system
         $app['config']->set('statamic.users.repository', 'file');
-
-        // Assume pro edition for our tests
-        // $app['config']->set('statamic.editions.pro', true);
     }
 
     protected function setUp(): void

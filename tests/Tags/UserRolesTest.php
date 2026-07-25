@@ -1,6 +1,6 @@
 <?php
 
-// CLASSIFY: OK — user role fixture (editor) exists; tests assert real role data
+// The test fixtures define a single role with handle "editor" and title "Editor".
 
 describe('user_roles', function () {
     test('renders role title when iterating all roles', function () {

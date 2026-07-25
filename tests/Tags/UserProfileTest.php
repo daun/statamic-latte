@@ -3,8 +3,6 @@
 use Latte\CompileException;
 use Statamic\Facades\User;
 
-// CLASSIFY: OK — user fixtures exist; authenticated path uses alice@example.com
-
 describe('user:profile', function () {
     test('compiles tag pair without parse error', function () {
         $latteError = false;
@@ -54,9 +52,7 @@ describe('user:profile', function () {
     });
 
     test('supports as: param with no user — variable is null, body runs once with null', function () {
-        // No auth user; profile returns null → aliased path still renders body once with $profile = null
-        // The tag proxy executes the body (aliased mode always runs body once)
-        // No assertion on content here; just verify no fatal thrown
+        // Aliased mode always runs the body once, even when the tag returns null.
         expect(fn () => $this->latte('{s:user:profile as: profile}{/s:user:profile}'))
             ->not->toThrow(CompileException::class);
     });

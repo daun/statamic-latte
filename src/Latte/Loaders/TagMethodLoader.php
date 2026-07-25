@@ -7,14 +7,9 @@ use Daun\StatamicLatte\Latte\Support\TagMethodSyntax;
 use Latte\Loader;
 
 /**
- * Loader decorator that lowers Statamic nested tag-method syntax before the
- * template reaches Latte's compiler.
- *
- * It wraps any inner {@see Loader} and transforms only the loaded source via
- * {@see TagMethodSyntax}; every other responsibility (resolving names, expiry,
- * unique ids, file IO) is delegated untouched. This keeps the underlying
- * loader a pure IO concern and isolates the one place where Statamic's runtime
- * tag-method dispatch is reconciled with Latte's compile-time tag registration.
+ * Loader decorator lowering Statamic tag syntax (TagMethodSyntax,
+ * TagExpressionSyntax) before the source reaches Latte's compiler; everything
+ * else is delegated to the inner loader untouched.
  */
 class TagMethodLoader implements Loader
 {
@@ -30,9 +25,7 @@ class TagMethodLoader implements Loader
         return $this->rewrite($this->inner->getContent($name));
     }
 
-    /**
-     * Rewrite Statamic tag syntax in every part outside a protected region.
-     */
+    /** Rewrite Statamic tag syntax everywhere outside a protected region. */
     protected function rewrite(string $content): string
     {
         $parts = preg_split(self::PROTECTED, $content, -1, PREG_SPLIT_DELIM_CAPTURE);

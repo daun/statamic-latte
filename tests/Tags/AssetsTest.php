@@ -2,8 +2,6 @@
 
 use Statamic\Facades\Stache;
 
-// CLASSIFY: OK — assets container + real image fixture in place; tests assert actual asset data
-
 describe('assets', function () {
     beforeEach(function () {
         Stache::clear();

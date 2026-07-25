@@ -1,6 +1,6 @@
 <?php
 
-// CLASSIFY: OK — user group fixture (editors) exists; tests assert real group data
+// The user fixtures define an "editors" group.
 
 describe('user_groups', function () {
     test('renders group title when iterating all groups', function () {

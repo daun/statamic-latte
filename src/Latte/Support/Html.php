@@ -2,17 +2,12 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
-/**
- * Helpers for inspecting rendered HTML.
- */
+/** Helpers for inspecting rendered HTML. */
 class Html
 {
     /**
-     * Elements that render output on their own, without holding any text.
-     *
-     * They are kept when stripping tags, so their mere presence counts as
-     * content. Extend or replace this list to change what {iftext} considers
-     * renderable.
+     * Elements that render on their own, whose mere presence counts as content.
+     * Extend to change what {iftext} considers renderable.
      *
      * @var list<string>
      */
@@ -22,16 +17,12 @@ class Html
         'textarea', 'progress', 'meter',
     ];
 
-    /**
-     * Whitespace that carries no visible text: regular whitespace plus the
-     * invisible characters WYSIWYG editors leave behind (&nbsp;, zero-width
-     * spaces, BOM).
-     */
+    /** Whitespace plus the invisible characters WYSIWYG editors leave behind. */
     protected const Blank = '~[\s\x{00A0}\x{200B}-\x{200D}\x{FEFF}]+~u';
 
     /**
-     * Does this HTML render anything? True if it contains text outside of tags,
-     * or any element that renders on its own (an image, a form input, ...).
+     * Does this HTML render anything? True if it contains text outside of tags
+     * or any element that renders on its own.
      */
     public static function hasText(?string $html): bool
     {
@@ -39,11 +30,9 @@ class Html
             return false;
         }
 
-        // Drop <style> and <template> blocks wholesale: their contents are not
-        // visible text, but would survive tag stripping as if they were.
+        // <style>/<template> contents would survive tag stripping as if visible.
         $html = preg_replace('~<(style|template)\b[^>]*>.*?</\1\s*>~is', '', $html) ?? $html;
 
-        // Strip tags, keeping the ones that count as content on their own
         $text = strip_tags($html, static::$renderingElements);
 
         // Entities like &nbsp; are whitespace, not text

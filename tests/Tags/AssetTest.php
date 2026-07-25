@@ -2,8 +2,6 @@
 
 use Statamic\Facades\Stache;
 
-// CLASSIFY: OK — assets container + real image fixture in place; tests assert actual asset data
-
 describe('asset', function () {
     beforeEach(function () {
         // Stache needs to be warm before asset lookups; clear any stale Stache cache.
@@ -26,7 +24,6 @@ describe('asset', function () {
     });
 
     test('pair body is skipped when asset path is unknown (null result skips body)', function () {
-        // CLASSIFY: OK — unknown path returns null; TagNode skips pair body, outputs nothing.
         $this->latte('[{s:asset url: "assets::img/nonexistent.jpg"}{$value->url}{/s:asset}]')
             ->assertSee('[]', false);
     });

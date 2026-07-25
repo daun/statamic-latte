@@ -14,19 +14,9 @@ use Latte\Essential\Nodes\EmbedNode;
 use Latte\Extension;
 
 /**
- * Latte extension for `<x-…>` components.
- *
- * A compiler pass rewrites every `<x-name>` element, choosing its destination
- * at compile time:
- *
- *   • A Latte template `components/<name>.latte` exists  → desugared to a native
- *     `{embed}` + `{block}` subtree (ComponentEmbed). Named `<x-slot>` children
- *     become filled blocks and the loose body becomes the `default` block, so
- *     slots, default-slot fallback and caller-scoped slot content all work.
- *   • Otherwise → a ComponentNode that dispatches to a Blade component at
- *     runtime (class, anonymous or vendor).
- *
- * A Latte template always wins over a Blade component of the same name.
+ * Compiler pass rewriting every `<x-name>` element: to an {embed} subtree when
+ * a Latte template `components/<name>.latte` exists (ComponentEmbed), else to
+ * a runtime Blade dispatch (ComponentNode). Latte always wins over Blade.
  */
 class ComponentExtension extends Extension
 {
@@ -64,9 +54,8 @@ class ComponentExtension extends Extension
     }
 
     /**
-     * The first block-layer id our synthetic embeds may safely use: one above
-     * the highest layer already assigned to a real `{embed}` during parsing, so
-     * the two never share a Blocks[] entry.
+     * First block-layer id our synthetic embeds may use: one above the highest
+     * layer of any real `{embed}`, so the two never share a Blocks[] entry.
      */
     protected static function baseLayer(TemplateNode $template): int
     {

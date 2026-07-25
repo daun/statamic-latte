@@ -1,11 +1,5 @@
 <?php
 
-/*
- * CLASSIFICATION OVERVIEW
- * nav (handle: main)  — OK: nav + tree fixture in place; custom title/url items
- * nav:breadcrumbs     — N/A: requires URL::getCurrent() — no HTTP context in unit test
- */
-
 describe('nav', function () {
     test('renders nav item titles from main tree', function () {
         $this->latte('{s:nav handle: main}{$value->title}{sep}, {/sep}{/s:nav}')
@@ -49,7 +43,7 @@ describe('nav', function () {
     });
 
     test('breadcrumbs compiles without fatal', function () {
-        // N/A: requires URL::getCurrent() to match an entry — no HTTP context in unit tests
+        // Breadcrumbs need URL::getCurrent() to match an entry, which has no HTTP context in unit tests.
         $this->latte('{s:nav:breadcrumbs}{$value->title}{sep} / {/sep}{/s:nav:breadcrumbs}')
             ->assertDontSee('<fatal>');
     });

@@ -22,13 +22,8 @@ use Latte\Compiler\Nodes\TextNode;
 use Latte\Compiler\PrintContext;
 
 /**
- * Replacement node for a `<x-…>` component element dispatched to Blade.
- *
- * Emits a runtime dispatch call to Components::render(), passing the component
- * name, a params array (static strings, dynamic PHP expressions, booleans) and
- * — for paired components — the slots rendered from the component body via
- * output buffering: the loose body as the default slot, plus each named
- * `<x-slot:header>` / `<x-slot name="header">` child as a Blade ComponentSlot.
+ * Replacement node for a `<x-…>` component element: emits a runtime call to
+ * Components::render() with the name, params, and output-buffered slots.
  */
 final class ComponentNode extends StatementNode
 {
@@ -58,8 +53,7 @@ final class ComponentNode extends StatementNode
             $node->slotAttributes[$slotName] = self::withoutName(self::parseAttributes($slot));
         }
 
-        // The loose body is the default slot. Self-closing / empty components
-        // (a NopNode or whitespace only) have no default slot.
+        // Empty/whitespace-only bodies produce no default slot.
         $node->slot = ComponentSlots::hasContent($loose) ? new FragmentNode($loose) : null;
 
         return $node;
@@ -77,11 +71,8 @@ final class ComponentNode extends StatementNode
     }
 
     /**
-     * Build the params array from the element's attributes:
-     *   - static  type="error"     -> string literal
-     *   - dynamic message={$m}     -> PHP expression
-     *   - boolean dismissible      -> true
-     *   - spread  ...={$arr} / ...{$arr} -> PHP array unpack
+     * Build the params array from the element's attributes: static strings,
+     * dynamic {$expr} values, boolean flags, and ...={$arr} / ...{$arr} spreads.
      */
     public static function parseAttributes(ElementNode $element): ArrayNode
     {
@@ -90,8 +81,6 @@ final class ComponentNode extends StatementNode
 
         foreach ($element->attributes->children as $child) {
             if ($child instanceof ExpressionAttributeNode) {
-                // Spread:  ...={$array}  -> PHP array unpack into the params.
-                // Later attributes override spread entries (source order wins).
                 if ($child->name === '...') {
                     $items[] = new ArrayItemNode($child->value, key: null, unpack: true);
 
@@ -107,9 +96,8 @@ final class ComponentNode extends StatementNode
                 continue;
             }
 
-            // Spread:  ...{$array}  parses as a boolean `...` attribute followed
-            // by an attribute whose *name* is the {$array} print. Stitch the
-            // two halves back into a single array unpack.
+            // ...{$array} parses as a boolean `...` attribute followed by one
+            // whose *name* is the {$array} print; stitch the halves back together.
             if ($spreadPending) {
                 $items[] = new ArrayItemNode(self::spreadExpression($child, $element), key: null, unpack: true);
                 $spreadPending = false;
@@ -169,10 +157,7 @@ final class ComponentNode extends StatementNode
         return new ArrayNode($items);
     }
 
-    /**
-     * Pull the array expression out of the `{$array}` half of a `...{$array}`
-     * spread, which Latte parses as an attribute whose name is a PrintNode.
-     */
+    /** Extract the array expression from the `{$array}` half of a `...{$array}` spread. */
     protected static function spreadExpression(AttributeNode $child, ElementNode $element): ExpressionNode
     {
         if (! $child->name instanceof PrintNode || $child->value !== null) {

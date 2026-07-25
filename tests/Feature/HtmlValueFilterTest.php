@@ -3,21 +3,11 @@
 use Statamic\Facades\Entry;
 
 /**
- * How an HtmlValue survives Latte's built-in filters.
- *
- * Latte's own filters branch on HtmlStringable, so marking a field as HTML
- * changes what they do with it. Three groups, each pinned below:
- *
- *   1. Content-aware filters (FilterInfo in the signature: stripTags, trim,
- *      spaceless, indent, replace, repeat) see contentType=Html and re-wrap
- *      their result in Latte\Runtime\Html — the markup survives the filter.
- *   2. stripHtml is content-aware too but flips contentType to Text: it
- *      decodes entities, so its result must be (and is) escaped on print.
- *   3. Classic filters (upper, truncate, ...) take the value as a plain string
- *      and return a plain string — output is escaped again, as before.
- *
- * `|noescape` keeps working in every one of those cases, since it is a
- * compile-time flag on the print, not a filter.
+ * How an HtmlValue survives Latte's built-in filters, which branch on
+ * HtmlStringable: content-aware filters (stripTags, trim, spaceless, ...)
+ * re-wrap their result as Html so the marking survives; stripHtml flips the
+ * content type to Text so its entity-decoded result is escaped on print;
+ * classic string filters (upper, truncate, ...) return plain escaped strings.
  */
 function filterEntry()
 {
@@ -25,13 +15,9 @@ function filterEntry()
 }
 
 /**
- * The markdown field renders to:
- *   <p>A wonderful <strong>serenity</strong> has taken
- *   <a href="/de/">possession</a> of my soul, salt &amp; pepper.</p>
- *
- * The `&amp;` is the tell: printing it raw shows `&amp;`, printing it escaped
- * shows `&amp;amp;`. Every assertion below uses that to prove whether a filter
- * result was still treated as HTML.
+ * The fixture's `&amp;` is the tell: printed raw it shows `&`-as-`&amp;`,
+ * double-escaped it shows `&amp;amp;`. Every assertion uses that to prove
+ * whether a filter result was still treated as HTML.
  */
 describe('content-aware filters keep the html marking', function () {
     test('stripTags drops tags and stays html', function () {

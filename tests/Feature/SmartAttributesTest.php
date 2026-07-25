@@ -3,14 +3,9 @@
 use Latte\Engine;
 
 /**
- * Latte 3.1 introduced "Smart HTML Attributes" — type-aware attribute
- * rendering (null removal, boolean attributes, array class/style, data-* JSON,
- * ARIA stringification, runtime type checks) plus the nullsafe filter operator
- * `?|`, `n:elseif`, and the brace `n:attribute={...}` form.
- *
- * Because the inline `(s:...)` sub-expression is rewritten in the source loader
- * before Latte compiles, it slots into all of these new constructs as an
- * ordinary expression. These tests pin that down.
+ * Pins down that the inline `(s:...)` expression slots into Latte 3.1's Smart
+ * HTML Attributes (null removal, boolean attributes, array class/style, data-*
+ * JSON, ARIA stringification), the nullsafe `?|` operator and `n:elseif`.
  *
  * @see https://blog.nette.org/en/latte-3-1-when-a-templating-system-truly-understands-html
  */

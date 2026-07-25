@@ -1,7 +1,5 @@
 <?php
 
-// CLASSIFY: OK — real search over pages collection via local (Comb) driver; sync queue
-
 use Illuminate\Support\Facades\File;
 use Statamic\Facades\Search;
 

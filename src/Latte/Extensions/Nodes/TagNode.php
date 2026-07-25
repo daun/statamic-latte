@@ -18,23 +18,10 @@ use Latte\Compiler\Tag;
 use Latte\Essential\Nodes\ForeachNode;
 
 /**
- * {s:[tag]} ... {/s:[tag]}
- *
- * Renders a Statamic tag. Behaviour depends on what the tag returns and its
- * params; the fetched value is held internally in $ʟ_result:
- *
- *  - `as: name`   stores the raw result in a body-scoped $name variable and
- *                 renders the body once (you iterate it yourself).
- *  - iterable     loops the body over the result via Latte's own foreach,
- *                 exposing each item as $value (with $iterator, {sep},
- *                 {first} and {last} support).
- *  - scalar       exposes the result to the body as $value and renders it
- *                 once; an empty or self-closing body falls back to echoing
- *                 the fetched output.
- *
- *
- * Parameters accept Statamic-style nested keys (e.g. `title:contains: foo`),
- * which Latte's own argument grammar would otherwise reject.
+ * {s:[tag]} ... {/s:[tag]} — renders a Statamic tag. With `as: name` the raw
+ * result becomes a body-scoped variable; an iterable result loops the body via
+ * Latte's foreach ($value, $iterator, {sep}...); a scalar renders the body once
+ * as $value, or is echoed directly when the body is empty/self-closing.
  */
 final class TagNode extends StatementNode
 {
@@ -83,11 +70,7 @@ final class TagNode extends StatementNode
         return $node;
     }
 
-    /**
-     * Parse the tag arguments, allowing Statamic-style nested keys such as
-     * `title:contains: foo`. Colons inside a key are masked with a placeholder
-     * so Latte's argument grammar accepts them, then restored afterwards.
-     */
+    /** Parse arguments, allowing Statamic-style nested keys (see TagArguments). */
     protected static function parseArguments(Tag $tag): ArrayNode
     {
         $args = TagArguments::parseParams($tag->parser->text);
@@ -105,9 +88,8 @@ final class TagNode extends StatementNode
         [$args, $as, $originalTag, $content] = $this->splitArguments();
         $name = $originalTag ?? Tags::unprefix($this->name);
 
-        // A `content:` argument supplies the tag-pair body as an already-rendered
-        // string (e.g. `{s:widont content: $text/}`), routed through
-        // fetchWithContent() so content-consuming tags receive it as `$this->content`.
+        // A `content:` argument supplies the tag-pair body as a rendered string
+        // (e.g. `{s:widont content: $text/}`) via fetchWithContent().
         $fetch = $content !== null
             ? $context->format(
                 '$ʟ_result = \Daun\StatamicLatte\Latte\Support\Tags::fetchWithContent(%dump, (string) (%node), %node); %line',
@@ -147,10 +129,7 @@ final class TagNode extends StatementNode
         );
     }
 
-    /**
-     * Loop the body over the result using Latte's native foreach so that
-     * $iterator, {sep}, {first} and {last} all work as expected.
-     */
+    /** Latte's native foreach, so $iterator, {sep}, {first} and {last} work. */
     protected function printForeach(PrintContext $context): string
     {
         $foreach = new ForeachNode;
@@ -161,9 +140,7 @@ final class TagNode extends StatementNode
         return $foreach->print($context);
     }
 
-    /**
-     * Store the result in a body-scoped variable and render the body once.
-     */
+    /** Store the result in a body-scoped variable and render the body once. */
     protected function printAliased(PrintContext $context, string $as): string
     {
         if (! preg_match('#^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$#', $as)) {
@@ -189,8 +166,8 @@ final class TagNode extends StatementNode
     }
 
     /**
-     * Split the parsed arguments, pulling out the `as` alias (which is
-     * consumed here rather than forwarded to the Statamic tag).
+     * Split out the `as`/`content`/internal arguments consumed here rather
+     * than forwarded to the Statamic tag.
      *
      * @return array{ArrayNode, ?string, ?string, ?ExpressionNode}
      */
