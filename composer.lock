@@ -2039,16 +2039,16 @@
         },
         {
             "name": "latte/latte",
-            "version": "v3.1.4",
+            "version": "v3.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/latte.git",
-                "reference": "14dea9fc32c0d1cf5e9a1bd59556ae8be023c2a6"
+                "reference": "8422eea5dd09c777e892d10f7d87dda42b117253"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/latte/zipball/14dea9fc32c0d1cf5e9a1bd59556ae8be023c2a6",
-                "reference": "14dea9fc32c0d1cf5e9a1bd59556ae8be023c2a6",
+                "url": "https://api.github.com/repos/nette/latte/zipball/8422eea5dd09c777e892d10f7d87dda42b117253",
+                "reference": "8422eea5dd09c777e892d10f7d87dda42b117253",
                 "shasum": ""
             },
             "require": {
@@ -2124,9 +2124,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nette/latte/issues",
-                "source": "https://github.com/nette/latte/tree/v3.1.4"
+                "source": "https://github.com/nette/latte/tree/v3.1.5"
             },
-            "time": "2026-04-23T06:30:25+00:00"
+            "time": "2026-07-25T15:27:40+00:00"
         },
         {
             "name": "league/commonmark",

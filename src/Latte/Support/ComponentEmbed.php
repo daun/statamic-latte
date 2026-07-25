@@ -13,7 +13,6 @@ use Latte\Compiler\Nodes\Php\Expression\AuxiliaryNode;
 use Latte\Compiler\Nodes\Php\ModifierNode;
 use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\PrintContext;
-use Latte\Compiler\Range;
 use Latte\Compiler\Tag;
 use Latte\Compiler\Token;
 use Latte\Essential\Nodes\BlockNode;
@@ -121,10 +120,12 @@ class ComponentEmbed
     protected static function syntheticTag(ElementNode $element): Tag
     {
         $position = $element->position;
-        $range = $position instanceof Range
-            ? $position
-            : new Range($position->line, $position->column, $position->offset, 0);
+        $tokens = [new Token(Token::End, '', $position)];
 
-        return new Tag('block', [new Token(Token::End, '', $range)], $range);
+        $arguments = property_exists($position, 'length')
+            ? ['block', $tokens, $position, false]
+            : ['block', $tokens, $position, $position];
+
+        return new Tag(...$arguments);
     }
 }
