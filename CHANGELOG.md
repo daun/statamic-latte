@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.5.0] - 2026-07-25
+
+- Support component default blocks with Latte 3.1.5
+
 ## [2.4.0] - 2026-07-15
 
 - Support native translation tags
@@ -70,6 +74,7 @@
 
 - Initial release
 
+[2.5.0]: https://github.com/daun/statamic-latte/releases/tag/2.5.0
 [2.4.0]: https://github.com/daun/statamic-latte/releases/tag/2.4.0
 [2.3.2]: https://github.com/daun/statamic-latte/releases/tag/2.3.2
 [2.3.1]: https://github.com/daun/statamic-latte/releases/tag/2.3.1
