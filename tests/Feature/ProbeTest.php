@@ -16,7 +16,7 @@ test('probe: latte own Html through upper', function () {
     try {
         $out = $this->latte('{capture $x}<b>hi</b>{/capture}{$x|upper}')->__toString();
         dump('capture|upper OK: '.$out);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         dump('capture|upper THREW: '.$e::class.' — '.$e->getMessage());
     }
     expect(true)->toBeTrue();
@@ -34,7 +34,7 @@ test('probe: HtmlValue through core filters', function () {
         try {
             $out = $this->latte('{$page->content|'.$filter.'}', ['page' => probeEntry()])->__toString();
             dump("|$filter → ".mb_substr($out, 0, 60));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             dump("|$filter THREW: ".$e::class.' — '.mb_substr($e->getMessage(), 0, 120));
         }
     }
