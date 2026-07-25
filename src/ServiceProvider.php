@@ -17,6 +17,7 @@ class ServiceProvider extends AddonServiceProvider
         Extensions\AttributeNormalizationExtension::class,
         Extensions\CacheExtension::class,
         Extensions\ComponentExtension::class,
+        Extensions\HrefExtension::class,
         Extensions\IfTextExtension::class,
         Extensions\LayoutExtension::class,
         Extensions\ModifierExtension::class,
