@@ -19,6 +19,7 @@ class ServiceProvider extends AddonServiceProvider
         Extensions\ComponentExtension::class,
         Extensions\HrefExtension::class,
         Extensions\IfTextExtension::class,
+        Extensions\KeyExtension::class,
         Extensions\LayoutExtension::class,
         Extensions\ModifierExtension::class,
         Extensions\ResolverExtension::class,
