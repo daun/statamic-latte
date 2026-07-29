@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.8.0] - 2026-07-230
+
+- Add `n:key` tag for keying tags by their contents
+
 ## [2.7.0] - 2026-07-25
 
 - Add `nocache` support for full file-based static caching
