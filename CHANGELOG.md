@@ -1,6 +1,10 @@
 # Changelog
 
-## [2.8.0] - 2026-07-230
+## [3.0.0] - 2026-08-05
+
+- No longer spread the current page's fields as top-level variables
+
+## [2.8.0] - 2026-07-23
 
 - Add `n:key` tag for keying tags by their contents
 
@@ -89,6 +93,7 @@
 
 - Initial release
 
+[3.0.0]: https://github.com/daun/statamic-latte/releases/tag/3.0.0
 [2.7.0]: https://github.com/daun/statamic-latte/releases/tag/2.7.0
 [2.6.0]: https://github.com/daun/statamic-latte/releases/tag/2.6.0
 [2.5.0]: https://github.com/daun/statamic-latte/releases/tag/2.5.0
