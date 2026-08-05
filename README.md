@@ -57,6 +57,12 @@ control structures and smart attributes for expressive templating.
 composer require daun/statamic-latte
 ```
 
+To change any of the addon's settings, publish its config file:
+
+```sh
+php artisan vendor:publish --tag=statamic-latte-config
+```
+
 ## Usage
 
 Once installed, you can use Latte views in your frontend. Save or rename your views
@@ -71,17 +77,9 @@ side-by-side as long as view names are unique.
 Found {s:collection:count in:pages /} pages:
 ```
 
-Unlike Antlers,
-Latte does not hoist loop item keys into scope. Inside a loop, the item itself is exposed
-as `$value`. Access fields explicitly with `$value->title` over a bare `{title}`.
-
-```latte
-{s:collection:pages}
-  {$value->title}
-{/s:collection:pages}
-```
-
-Assign tag output using parentheses:
+Unlike Antlers, Latte does not hoist loop item keys into scope. The canonical pattern in
+Latte is to capture the tag output in a variable and loop over that directly. You
+can do that by using parentheses to wrap any tag:
 
 ```latte
 {var $entries = (s:collection from: pages, sort: title)}
@@ -94,12 +92,6 @@ Or capture output into a variable using the `as` param:
 {s:collection from: pages, as: entries}
   {foreach $entries as $entry}{$entry->title}{/foreach}
 {/s:collection}
-```
-
-Use self-closing tags to output simple scalar return values from tags:
-
-```latte
-{s:link to: "snacks"/}
 ```
 
 #### Arguments
@@ -133,7 +125,6 @@ filters, `foreach`, and Latte's `n:` attributes:
 ```latte
 {var $entries = (s:collection from: pages, sort: title)}
 {if (s:collection:count in: pages) > 1}many{/if}
-{(s:link to: "snacks")|upper}
 
 <li n:foreach="(s:collection from: pages) as $entry">{$entry->title}</li>
 <p n:if="(s:collection:count in: pages) > 1">many</p>
@@ -151,8 +142,8 @@ Some tags transform their tag-pair body instead of returning data (e.g. `widont`
 
 ### Forms
 
-Through the proxy, `form:create` returns the form's *data* rather than rendered
-markup, so you build the `<form>` in Latte and loop the fields yourself. Capture
+In Latte, `form:create` returns the form object rather than rendered markup,
+so you build the `<form>` in Latte and loop the fields yourself. Capture
 it with `as:`:
 
 ```latte
@@ -193,8 +184,8 @@ To list individual error messages, read them from the `form:create` capture
 
 ### HTML fields
 
-Latte escapes every printed value, which is what you want for a title and wrong for a
-markdown field. Fields whose **fieldtype** renders HTML during augmentation — `bard`,
+Latte properly escapes every printed value, which is what you want for a title but not for
+a markdown field. Fields whose fieldtype renders HTML during augmentation — `bard`,
 `markdown`, `redactor` — are recognized and printed as markup, so `|noescape` is not
 needed:
 
@@ -202,6 +193,7 @@ needed:
 <h1>{$entry->title}</h1>       {* text field → escaped, even if it holds <a> *}
 <div>{$entry->content}</div>   {* markdown field → <p>…</p>, as markup *}
 ```
+
 ### Resolving values
 
 Most values are augmented and stringified automatically on print, so you rarely need to
@@ -507,6 +499,22 @@ Latte's `n:` control attributes work on components:
 <x-card n:if="$show">content</x-card>
 
 <x-greeting n:foreach="$names as $name" name={$name}/>
+```
+
+### Cascade variables
+
+Latte views receive the page through `$page` only; its fields are not repeated as variables.
+This differs from Antlers, where all page fields are available as variables.
+
+```latte
+{$page->title}      {* not {$title} *}
+{$page->medias}     {* not {$medias} *}
+```
+
+To get Statamic's own behaviour back, set `cascade` to `full` in `config/statamic-latte.php`:
+
+```php
+'cascade' => 'full',
 ```
 
 ## License
