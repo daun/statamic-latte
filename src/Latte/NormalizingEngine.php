@@ -5,6 +5,8 @@ namespace Daun\StatamicLatte\Latte;
 use Daun\StatamicLatte\Data\Content;
 use Daun\StatamicLatte\Latte\Support\Sections;
 use Miko\LaravelLatte\LatteEngine;
+use Statamic\Contracts\Data\Augmentable;
+use Statamic\Fields\Value;
 
 /**
  * Extends Miko\LaravelLatte\LatteEngine, inserting Statamic data normalization
@@ -22,9 +24,49 @@ class NormalizingEngine extends LatteEngine
         Sections::beginRender();
 
         try {
-            return Sections::resolve(parent::get($path, Content::wrapAll($data)));
+            $data = Content::wrapAll($this->stripPageFields($data));
+
+            return Sections::resolve(parent::get($path, $data));
         } finally {
             Sections::endRender();
         }
+    }
+
+    /**
+     * Drop the current page's fields from the view data, keeping `$page`.
+     */
+    protected function stripPageFields(array $data): array
+    {
+        $page = $data['page'] ?? null;
+
+        if (config('statamic-latte.cascade', 'page') !== 'page' || ! $page instanceof Augmentable) {
+            return $data;
+        }
+
+        return array_filter(
+            $data,
+            fn (mixed $value) => ! $value instanceof Value || ! static::belongsTo($value, $page),
+        );
+    }
+
+    /**
+     * Whether a value was augmented from the given item. Identity holds within
+     * a single cascade hydration; the id comparison covers values restored
+     * from a separate hydration, like the static cache's nocache session.
+     */
+    protected static function belongsTo(Value $value, Augmentable $page): bool
+    {
+        $augmentable = $value->augmentable();
+
+        if ($augmentable === $page) {
+            return true;
+        }
+
+        return $augmentable instanceof Augmentable
+            && $augmentable::class === $page::class
+            && method_exists($augmentable, 'id')
+            && method_exists($page, 'id')
+            && $augmentable->id() !== null
+            && $augmentable->id() === $page->id();
     }
 }
