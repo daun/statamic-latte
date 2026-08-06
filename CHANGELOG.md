@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.0.1] - 2026-08-06
+
+- Fix page fields not being stripped in structured collection
+
 ## [3.0.0] - 2026-08-05
 
 - No longer spread the current page's fields as top-level variables
@@ -93,6 +97,7 @@
 
 - Initial release
 
+[3.0.1]: https://github.com/daun/statamic-latte/releases/tag/3.0.1
 [3.0.0]: https://github.com/daun/statamic-latte/releases/tag/3.0.0
 [2.7.0]: https://github.com/daun/statamic-latte/releases/tag/2.7.0
 [2.6.0]: https://github.com/daun/statamic-latte/releases/tag/2.6.0
