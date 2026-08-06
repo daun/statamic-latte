@@ -50,9 +50,7 @@ class NormalizingEngine extends LatteEngine
     }
 
     /**
-     * Whether a value was augmented from the given item. Identity holds within
-     * a single cascade hydration; the id comparison covers values restored
-     * from a separate hydration, like the static cache's nocache session.
+     * Whether a value was augmented from the given item.
      */
     protected static function belongsTo(Value $value, Augmentable $page): bool
     {
@@ -62,11 +60,13 @@ class NormalizingEngine extends LatteEngine
             return true;
         }
 
-        return $augmentable instanceof Augmentable
-            && $augmentable::class === $page::class
-            && method_exists($augmentable, 'id')
-            && method_exists($page, 'id')
-            && $augmentable->id() !== null
-            && $augmentable->id() === $page->id();
+        $id = $augmentable instanceof Augmentable ? static::id($augmentable) : null;
+
+        return $id !== null && $id === static::id($page);
+    }
+
+    protected static function id(Augmentable $item): mixed
+    {
+        return method_exists($item, 'id') ? $item->id() : null;
     }
 }

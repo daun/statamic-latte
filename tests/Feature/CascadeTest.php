@@ -1,13 +1,22 @@
 <?php
 
 use Statamic\Facades\Cascade;
+use Statamic\Facades\Data;
 use Statamic\Facades\Entry;
+use Statamic\Structures\Page;
 
 function pageCascade(string $slug = 'testable'): array
 {
     $entry = Entry::query()->where('slug', $slug)->first();
 
     return Cascade::withContent($entry)->hydrate()->toArray();
+}
+
+function requestCascade(string $uri = '/testable'): array
+{
+    $content = Data::findByRequestUrl('http://localhost'.$uri);
+
+    return Cascade::withContent($content)->hydrate()->toArray();
 }
 
 describe('cascade mode', function () {
@@ -22,6 +31,15 @@ describe('cascade mode', function () {
         $this->latte(
             '[{$title ?? "none"}][{$url ?? "none"}][{$page->title}][{$page->url}]',
             pageCascade()
+        )->assertSee('[none][none][Testable][/testable]', false);
+    });
+
+    test('strips page fields when the page is a structure page', function () {
+        expect(requestCascade()['page'])->toBeInstanceOf(Page::class);
+
+        $this->latte(
+            '[{$title ?? "none"}][{$url ?? "none"}][{$page->title}][{$page->url}]',
+            requestCascade()
         )->assertSee('[none][none][Testable][/testable]', false);
     });
 
