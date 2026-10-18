@@ -174,6 +174,28 @@ Type-aware attribute rendering works with wrapped data and `(s:...)` subexpressi
 {s:trans key: "primary", fallback: (s:trans key: "fallback") /}
 ```
 
+## Core concept 13: embeds and scoped slots
+
+`{slot}` / `n:slot` / `n:inner-slot` behave exactly like `{block}` / `n:block` / `n:inner-block` (tests/Feature/SlotTest.php asserts byte-identical output). Inside `{embed}`, a filled slot sees two scopes:
+
+1. the caller's variables at the `{embed}` site, `{var}` locals included;
+2. the partial's variables where it renders the slot: everything in scope for an inline `{slot}` (e.g. the loop variable), or only the arguments for `{include #name, …}`.
+
+Partial data wins on name clashes. Lead with the inline form; it repeats per loop iteration with no extra wiring:
+
+```latte
+{* partials/table.latte *}
+{foreach $rows as $row}<tr>{slot row}<td>{$row}</td>{/slot}</tr>{/foreach}
+
+{* caller *}
+{var $class = 'highlight'}
+{embed file 'partials.table', rows: $rows}
+    {slot row}<td class={$class}>{$row}</td>{/slot}
+{/embed}
+```
+
+The explicit-interface alternative is `{define row, $cell}…{/define}` plus `{include #row, cell: $row}` in the partial; the caller fill reads `$cell`. Without a fill, the partial's default renders on every invocation. Component slots (`<x-slot:name>`) compile to the same embedded blocks and follow the same rules.
+
 ## Blocked Statamic tags and their native alternatives
 
 `TagNode::$unsupportedTags` (src/Latte/Extensions/Nodes/TagNode.php) throws a `CompileException` at compile time for these — the message names the alternative:
@@ -227,7 +249,7 @@ Type-aware attribute rendering works with wrapped data and `(s:...)` subexpressi
 
 - **tag-bridge** — how the three tag spellings are implemented (loader rewrites, TagNode, runtime fetch).
 - **data-layer** — Content/Deferred/Resolver internals and the wrap/unwrap boundaries.
-- **extensions-and-nodes** — layout resolution, sections/yield, slot alias, antlers node internals.
+- **extensions-and-nodes** — layout resolution, sections/yield, slot alias and caller-scope retagging, antlers node internals.
 - **caching** — `{cache}`/`{nocache}` semantics and their documented limitations.
 - **testing** — the `$this->latte()` helper, fixtures, per-tag compat suite.
 - **debugging** — inspecting compiled templates when a construct miscompiles.

@@ -274,8 +274,7 @@ named, fillable regions with `{block}`, and the embedding template overrides the
 inside `{embed}`.
 
 For parity with the component/slot vocabulary used by Antlers and Blade, `{slot}` is
-provided as an **exact alias for `{block}`**. It is a pure synonym — same parsing, same
-rendering — so you can use slot terminology on both sides of an embed:
+provided as an alias for `{block}`, so you can use slot terminology on both sides of an embed:
 
 ```latte
 {* partials/figure.latte *}
@@ -294,7 +293,7 @@ rendering — so you can use slot terminology on both sides of an embed:
 {/embed}
 ```
 
-Because `{slot}` is identical to `{block}`, the two are interchangeable everywhere
+`{slot}` behaves exactly like `{block}`, so the two are interchangeable everywhere
 (including layouts and `{extends}`) and you can freely mix them. Omitting a slot in the
 embed falls back to the default content defined in the partial.
 
@@ -311,6 +310,63 @@ The `n:slot` attribute is also available (mirroring `n:block`) and works on both
     <figcaption n:slot="caption">A custom caption</figcaption>
 {/embed}
 ```
+
+#### Scoped slots
+
+Slot content sees two sets of variables, much like scoped slots in Vue or snippets in Svelte:
+
+- the **caller's variables** at the `{embed}` site, including `{var}` locals
+- the **partial's variables** at the point where it renders the slot, e.g. the current loop item
+
+That lets a partial render a slot once per item in a loop while the caller decides what each item looks like:
+
+```latte
+{* partials/table.latte *}
+
+<table>
+    {foreach $rows as $row}
+        <tr>
+            {slot row}
+                <td>{$row}</td>
+            {/slot}
+        </tr>
+    {/foreach}
+</table>
+```
+
+```latte
+{* template *}
+
+{var $class = 'highlight'}
+
+{embed file 'partials.table', rows: $rows}
+    {slot row}
+        <td class={$class}>{$row}</td>
+    {/slot}
+{/embed}
+```
+
+The filled slot replaces the inline default for every row; without a fill, the default renders for
+every row. If a name exists on both sides, the partial's value wins.
+
+To give a slot an explicit interface instead of exposing the whole loop scope, define it with
+parameters and render it with `{include}`:
+
+```latte
+{* partials/table.latte *}
+
+{define row, $cell}
+    <td>{$cell}</td>
+{/define}
+
+<table>
+    {foreach $rows as $row}
+        <tr>{include #row, cell: $row}</tr>
+    {/foreach}
+</table>
+```
+
+The caller fills it the same way, with `{slot row}…{$cell}…{/slot}`.
 
 ### Conditional content
 

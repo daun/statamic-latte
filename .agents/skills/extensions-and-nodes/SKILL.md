@@ -95,9 +95,22 @@ Change layout rules only in `resolveLayout`; keep the `__layout_parent` early-re
 
 Tested by `tests/Tags/SectionTest.php` in both orders within Latte and in both Latte↔Antlers directions; the Blade `@yield` mirror in `Sections::store` is NOT covered by tests — verify manually if you touch it. Note its mandatory `beforeEach` reset trio (`Cascade::instance()->clearSections()`, `app('view')->flushSections()`, `LiteralReplacementManager::resetLiteralState()`); copy it into any new section test or static state leaks across tests.
 
-### SlotExtension — {slot} as a pure {block} alias
+### SlotExtension — {slot} as a {block} alias with caller scope
 
-`src/Latte/Extensions/SlotExtension.php` maps `'slot' => [\Latte\Essential\Nodes\BlockNode::class, 'create']` — zero custom code (introduced in PR #15, `feat/slot-alias`). Because the node IS a `BlockNode`, it passes `{embed}`'s instanceof content check, and `n:slot`/`n:inner-slot` come free (Latte auto-derives `n:` forms). Keep it a zero-logic alias; a custom node class breaks both properties. `tests/Feature/SlotTest.php` asserts byte-equality with `{block}` output.
+`src/Latte/Extensions/SlotExtension.php` maps `'slot' => [SlotNode::class, 'create']`. `src/Latte/Extensions/Nodes/SlotNode.php` extends `Latte\Essential\Nodes\BlockNode` and delegates parsing to `parent::create()` (`yield from`). Because the node IS a `BlockNode`, it passes `{embed}`'s instanceof content check, and `n:slot`/`n:inner-slot` come free (Latte auto-derives `n:` forms).
+
+A zero-logic alias (`[BlockNode::class, 'create']`, the original PR #15 version) is **not** sufficient: Latte's `TemplateGenerator::generateBlocks()` only gives an embedded block the caller's variables (`extract(end($this->varStack))`) when `$block->tag->name === 'block'`. A `{slot}` fill fell back to `extract($this->params)`, so `{var}` locals at the `{embed}` site were undefined (`Undefined variable $class`) while plain params and per-invocation data still worked. Latte's own `EmbedNode` relies on the same tag-name check for its implicit `{block default}`.
+
+The fix, after parsing completes in `SlotNode::create()`:
+
+- Only static, named blocks on an integer layer > 0 (i.e. filled inside `{embed}`) are touched. Anonymous `{slot|filter}`, dynamic names, `local` slots, and slots outside embeds keep native behavior untouched.
+- The `Block` (readonly `name`/`layer`/`tag`) is rebuilt with a synthetic tag from `src/Latte/Support/SyntheticBlockTag.php` (shared with `ComponentEmbed`), copying `parameters`; the `TemplateParser::$blocks[$layer][$name]` registry entry is swapped if it still points at the old block (`IncludeBlockNode` reads it by reference at print time).
+- The original `{slot}` `Tag` stays on the parser and node, so end-tag matching and diagnostics (`Cannot redeclare slot 'x'`) still say slot. The compiled method comment for a filled slot reads `{block name}`.
+- `SlotExtension::getCacheKey()` returns a marker string so templates compiled by an older addon version are recompiled. Bump it whenever the compiled shape of slots changes.
+
+Runtime contract: a filled slot method extracts the caller scope first, then the invocation arguments (`get_defined_vars()` from an inline `{slot}` in the partial, or `{include #name, …}` args), so partial data shadows same-named caller variables. `tests/Feature/SlotTest.php` asserts byte-equality with `{block}` for all of these cases. If upstream Latte replaces the tag-name check with a semantic flag, drop the retagging once the minimum Latte version includes it and keep the tests.
+
+`SyntheticBlockTag::create()` handles the `Tag` constructor drift: Latte 3.1.5+ requires an `$end` position after `$position` (detected via `property_exists(Tag::class, 'end')`); 3.1.4 types `$position` as `Range` (pass through the parser's own position objects, never a fresh `Position`).
 
 ### AntlersExtension — inline {antlers} blocks
 
@@ -145,7 +158,7 @@ Registers `CacheNode` and `NocacheNode`. Internals (key derivation, scopes, stat
 
 1. Version branches live ONLY in `ExtractsToTemporaryView` (`Engine::VersionId < 30014`, twice). Check whether the new version changes lexer syntax handling; if the addon drops pre-3.0.14 support, both branches and the `$lexerDelimiters` WeakMap can go.
 2. `tests/Feature/SmartAttributesTest.php` asserts `Engine::VERSION >= 3.1` — bump if the floor rises.
-3. Find compiled-output drift: run `composer test`. Failures cluster where Latte changed node classes or compiled-PHP conventions. Prime suspects: `AttributeNormalizationExtension` (targets the concrete class `Latte\Essential\Nodes\NAttrNode` — verify it still exists and its `args->items` shape), `SlotExtension` (aliases `Latte\Essential\Nodes\BlockNode::create` — verify signature), any `parseUnquotedStringOrExpression`/`parseArguments` call sites.
+3. Find compiled-output drift: run `composer test`. Failures cluster where Latte changed node classes or compiled-PHP conventions. Prime suspects: `AttributeNormalizationExtension` (targets the concrete class `Latte\Essential\Nodes\NAttrNode` — verify it still exists and its `args->items` shape), `SlotExtension`/`SlotNode` (extends `Latte\Essential\Nodes\BlockNode`, depends on `TemplateGenerator::generateBlocks()` keying caller scope off the tag name `block` — re-check that line and the `Tag`/`Block` constructors), any `parseUnquotedStringOrExpression`/`parseArguments` call sites.
 4. Diff compiled output before/after the bump for a template exercising each tag (compiled dir inspection — debugging skill). Watch for renamed Latte-internal `$ʟ_` helpers and changed escaper calls.
 5. CI matrix is PHP 8.3–8.5 × Laravel 12/13 × Statamic 6; Latte comes transitively via `miko/laravel-latte ^3.0`, so a Latte floor bump means checking miko's constraint in `composer.json`.
 

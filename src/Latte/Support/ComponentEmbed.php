@@ -14,7 +14,6 @@ use Latte\Compiler\Nodes\Php\ModifierNode;
 use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
-use Latte\Compiler\Token;
 use Latte\Essential\Nodes\BlockNode;
 use Latte\Essential\Nodes\EmbedNode;
 
@@ -71,7 +70,7 @@ class ComponentEmbed
      */
     protected static function blocks(ElementNode $element, string $name, int $layer): array
     {
-        $tag = self::syntheticTag($element);
+        $tag = SyntheticBlockTag::create($element->position);
         [$named, $loose] = ComponentSlots::split($element, $name);
         $blocks = [];
 
@@ -95,21 +94,5 @@ class ComponentEmbed
         $node->position = $tag->position;
 
         return $node;
-    }
-
-    /**
-     * Latte's Block requires a Tag, which HTML element nodes don't carry, so we
-     * synthesise a minimal inert one with a single positioned token.
-     */
-    protected static function syntheticTag(ElementNode $element): Tag
-    {
-        $position = $element->position;
-        $tokens = [new Token(Token::End, '', $position)];
-
-        $arguments = property_exists($position, 'length')
-            ? ['block', $tokens, $position, false]
-            : ['block', $tokens, $position, $position];
-
-        return new Tag(...$arguments);
     }
 }
