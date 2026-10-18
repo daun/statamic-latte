@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.2.0] - 2026-10-18
+
+- Use shorter key hash for better compression
+
 ## [3.1.0] - 2026-10-18
 
 - Support scoped slots with access to caller and partial variables
