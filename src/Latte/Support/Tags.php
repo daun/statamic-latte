@@ -68,7 +68,7 @@ class Tags
         }
 
         $tag = Statamic::tag($name)
-            ->params($params)
+            ->params(static::normalizeParams($params))
             ->context(Cascade::instance()->toArray());
 
         if ($content !== null) {
@@ -76,6 +76,21 @@ class Tags
         }
 
         return static::fetchTag($name, $tag);
+    }
+
+    /**
+     * Hand tags raw Statamic data, like modifiers get: peel the template wrappers
+     * and leave out nulls, which fluent tags would otherwise turn into `true` flags.
+     *
+     * @param  array<mixed>  $params
+     * @return array<mixed>
+     */
+    protected static function normalizeParams(array $params): array
+    {
+        return array_filter(
+            array_map([Content::class, 'unwrap'], $params),
+            fn (mixed $value) => $value !== null,
+        );
     }
 
     /**
