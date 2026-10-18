@@ -1,7 +1,10 @@
 <?php
 
+use Daun\StatamicLatte\Latte\Extensions\KeyExtension;
 use Daun\StatamicLatte\Latte\Extensions\Nodes\KeyNode;
 use Latte\CompileException;
+use Latte\Engine;
+use Latte\Loaders\StringLoader;
 
 describe('n:key', function () {
     test('adds a key and an id derived from the rendered outer HTML', function () {
@@ -102,6 +105,24 @@ describe('n:key condition', function () {
         (string) $this->latte('<div n:key="$check()">Hello</div>', ['check' => $check]);
 
         expect($calls)->toBe(1);
+    });
+
+    test('renders nested conditional keys', function () {
+        $inner = KeyNode::hash('<span>Hi</span>');
+
+        $this->latte('<section n:key="false"><div n:key="true"><span n:key="true">{$text}</span></div></section>', ['text' => 'Hi'])
+            ->assertSee('<section><div id="key-', false)
+            ->assertSee("<span id=\"key-{$inner}\" key=\"{$inner}\">Hi</span>", false);
+    });
+
+    test('compiles nested element content only once', function () {
+        $engine = new Engine;
+        $engine->setLoader(new StringLoader);
+        $engine->addExtension(new KeyExtension);
+
+        $code = $engine->compile('<section n:key="$a"><div n:key="$b"><span n:key="$c">{$text}</span></div></section>');
+
+        expect(substr_count($code, 'escapeText($text)'))->toBe(1);
     });
 });
 
