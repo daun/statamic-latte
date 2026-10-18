@@ -180,13 +180,12 @@ describe('params', function () {
             ->assertSee('related='.get_class(Entry::query()->where('collection', 'pages')->where('slug', 'testable')->first()));
     });
 
-    test('leaves out null params instead of passing them as true', function () {
+    test('passes null params as null instead of true', function () {
         $this->latte('{s:param_types missing: $missing /}', ['missing' => null])
-            ->assertSee('none');
+            ->assertSee('missing=null');
 
         $this->latte('{var $missing = null}{s:param_types src: $missing, keep: 0 /}')
-            ->assertSee('keep=int')
-            ->assertDontSee('src=');
+            ->assertSee('src=null keep=int');
     });
 
     test('accepts nested params', function () {
