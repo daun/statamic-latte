@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.3.0] - 2026-10-18
+
+- Support conditional `n:key` attribute
+
 ## [3.2.0] - 2026-10-18
 
 - Use shorter key hash for better compression
@@ -110,6 +114,8 @@
 
 - Initial release
 
+[3.3.0]: https://github.com/daun/statamic-latte/releases/tag/3.3.0
+[3.2.0]: https://github.com/daun/statamic-latte/releases/tag/3.2.0
 [3.1.0]: https://github.com/daun/statamic-latte/releases/tag/3.1.0
 [3.0.2]: https://github.com/daun/statamic-latte/releases/tag/3.0.2
 [3.0.1]: https://github.com/daun/statamic-latte/releases/tag/3.0.1
