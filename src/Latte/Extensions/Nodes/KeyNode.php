@@ -20,6 +20,11 @@ use Latte\Compiler\TemplateParser;
  */
 final class KeyNode extends StatementNode
 {
+    public static function hash(string $html): string
+    {
+        return substr(hash('xxh3', $html), 0, 8);
+    }
+
     public AreaNode $content;
 
     public int $id;
@@ -101,7 +106,7 @@ final class KeyNode extends StatementNode
                         $ʟ_keyContent[%dump] = ob_get_clean();
                     }
                     $ʟ_keyOuter[%dump] = %dump . $ʟ_keyAttributes[%dump] . %dump . $ʟ_keyContent[%dump] . %dump;
-                    $ʟ_key[%dump] = hash('xxh128', $ʟ_keyOuter[%dump]);
+                    $ʟ_key[%dump] = \Daun\StatamicLatte\Latte\Extensions\Nodes\KeyNode::hash($ʟ_keyOuter[%dump]);
                     %node
                     XX,
                 $renderedAttributes,
