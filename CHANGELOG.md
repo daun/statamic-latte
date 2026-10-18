@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.1.0] - 2026-10-18
+
+- Support scoped slots with access to caller and partial variables
+- Fix filled slots not seeing the caller's local variables
+
 ## [3.0.2] - 2026-10-18
 
 - Pass raw data to Statamic tags
@@ -101,6 +106,7 @@
 
 - Initial release
 
+[3.1.0]: https://github.com/daun/statamic-latte/releases/tag/3.1.0
 [3.0.2]: https://github.com/daun/statamic-latte/releases/tag/3.0.2
 [3.0.1]: https://github.com/daun/statamic-latte/releases/tag/3.0.1
 [3.0.0]: https://github.com/daun/statamic-latte/releases/tag/3.0.0
