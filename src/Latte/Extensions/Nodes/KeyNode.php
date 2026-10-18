@@ -7,6 +7,7 @@ use Latte\Compiler\Nodes\AreaNode;
 use Latte\Compiler\Nodes\AuxiliaryNode;
 use Latte\Compiler\Nodes\FragmentNode;
 use Latte\Compiler\Nodes\Html\ElementNode;
+use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
@@ -14,9 +15,11 @@ use Latte\Compiler\TemplateParser;
 
 /**
  * <div n:key>...</div>
+ * <div n:key="$condition">...</div>
  *
  * Captures the rendered outer HTML so attributes and dynamic content
- * contribute to its key.
+ * contribute to its key. An optional condition is evaluated at runtime;
+ * when falsy, the element renders untouched without capturing or keying.
  */
 final class KeyNode extends StatementNode
 {
@@ -26,6 +29,8 @@ final class KeyNode extends StatementNode
     }
 
     public AreaNode $content;
+
+    public ?ExpressionNode $condition = null;
 
     public int $id;
 
@@ -38,6 +43,10 @@ final class KeyNode extends StatementNode
     {
         $node = $tag->node = new self;
         $node->id = $parser->generateId();
+
+        if (! $tag->parser->isEnd()) {
+            $node->condition = $tag->parser->parseExpression();
+        }
 
         if (! $tag->parser->isEnd()) {
             throw new CompileException("Unexpected arguments in {$tag->getNotation()}", $tag->position);
@@ -82,16 +91,16 @@ final class KeyNode extends StatementNode
         try {
             $this->htmlElement->attributes = new FragmentNode([
                 new AuxiliaryNode(
-                    fn () => $this->printAttributes($context),
+                    fn () => $this->printAttributes($context, $renderedAttributes),
                 ),
             ]);
             if ($inner !== null) {
                 $this->htmlElement->content = new AuxiliaryNode(
-                    fn () => $context->format('echo $ʟ_keyContent[%dump];', $this->id),
+                    fn () => $this->printContent($context, $renderedInner),
                 );
             }
 
-            return $context->format(
+            $capture = $context->format(
                 <<<'XX'
                     ob_start(fn() => '');
                     try {
@@ -107,7 +116,6 @@ final class KeyNode extends StatementNode
                     }
                     $ʟ_keyOuter[%dump] = %dump . $ʟ_keyAttributes[%dump] . %dump . $ʟ_keyContent[%dump] . %dump;
                     $ʟ_key[%dump] = \Daun\StatamicLatte\Latte\Extensions\Nodes\KeyNode::hash($ʟ_keyOuter[%dump]);
-                    %node
                     XX,
                 $renderedAttributes,
                 $this->id,
@@ -121,6 +129,24 @@ final class KeyNode extends StatementNode
                 $inner === null ? '' : "</{$this->htmlElement->name}>",
                 $this->id,
                 $this->id,
+            );
+
+            if ($this->condition === null) {
+                return $context->format("%raw\n%node", $capture, $this->content);
+            }
+
+            return $context->format(
+                <<<'XX'
+                    $ʟ_keyIf[%dump] = (bool) (%node);
+                    if ($ʟ_keyIf[%dump]) {
+                        %raw
+                    }
+                    %node
+                    XX,
+                $this->id,
+                $this->condition,
+                $this->id,
+                $capture,
                 $this->content,
             );
         } finally {
@@ -129,9 +155,9 @@ final class KeyNode extends StatementNode
         }
     }
 
-    private function printAttributes(PrintContext $context): string
+    private function printAttributes(PrintContext $context, string $renderedAttributes): string
     {
-        return $this->hasId
+        $keyed = $this->hasId
             ? $context->format(
                 'echo $ʟ_keyAttributes[%dump], \' key="\', $ʟ_key[%dump], \'"\';',
                 $this->id,
@@ -143,10 +169,46 @@ final class KeyNode extends StatementNode
                 $this->id,
                 $this->id,
             );
+
+        return $this->guard($context, $keyed, $renderedAttributes);
+    }
+
+    private function printContent(PrintContext $context, string $renderedInner): string
+    {
+        $keyed = $context->format('echo $ʟ_keyContent[%dump];', $this->id);
+
+        return $this->guard($context, $keyed, $renderedInner);
+    }
+
+    /**
+     * Without a condition, always print the keyed output. With one, fall back
+     * to the element's original rendering when the condition is falsy.
+     */
+    private function guard(PrintContext $context, string $keyed, string $fallback): string
+    {
+        if ($this->condition === null) {
+            return $keyed;
+        }
+
+        return $context->format(
+            <<<'XX'
+                if ($ʟ_keyIf[%dump]) {
+                    %raw
+                } else {
+                    %raw
+                }
+                XX,
+            $this->id,
+            $keyed,
+            $fallback,
+        );
     }
 
     public function &getIterator(): \Generator
     {
+        if ($this->condition) {
+            yield $this->condition;
+        }
         yield $this->content;
     }
 }
