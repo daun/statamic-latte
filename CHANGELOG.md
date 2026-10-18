@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.3.1] - 2026-10-18
+
+- Avoid duplicate compiled code in conditional `n:key` attribute
+
 ## [3.3.0] - 2026-10-18
 
 - Support conditional `n:key` attribute
@@ -114,6 +118,7 @@
 
 - Initial release
 
+[3.3.1]: https://github.com/daun/statamic-latte/releases/tag/3.3.1
 [3.3.0]: https://github.com/daun/statamic-latte/releases/tag/3.3.0
 [3.2.0]: https://github.com/daun/statamic-latte/releases/tag/3.2.0
 [3.1.0]: https://github.com/daun/statamic-latte/releases/tag/3.1.0
