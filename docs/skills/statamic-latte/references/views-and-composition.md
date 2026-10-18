@@ -81,7 +81,7 @@ Define content in one place, output it in another — mapping to Antlers' identi
 
 ## {slot} / n:slot
 
-`{slot}` is an **exact alias of Latte's `{block}`** (`n:slot` ≡ `n:block`, `n:inner-slot` ≡ `n:inner-block`) — pure vocabulary parity with the component/slot terminology of Antlers and Blade. Same parsing, same rendering, freely interchangeable with `{block}` everywhere, including layouts and `{extends}`:
+`{slot}` behaves exactly like Latte's `{block}` (`n:slot` ≡ `n:block`, `n:inner-slot` ≡ `n:inner-block`) — vocabulary parity with the component/slot terminology of Antlers and Blade. Same parsing, same rendering, same scoping, freely interchangeable with `{block}` everywhere, including layouts and `{extends}`:
 
 ```latte
 {* partials/figure.latte *}
@@ -102,6 +102,27 @@ Define content in one place, output it in another — mapping to Antlers' identi
 ```
 
 Omitting a slot in the embed falls back to the default content defined in the partial — standard `{embed}`/`{block}` semantics from the base skill apply (isolated block layer, variable scoping).
+
+### Scoped slots
+
+A filled slot sees the caller's variables at the `{embed}` site (including `{var}` locals) **and** the partial's variables where the slot is rendered. A partial can therefore render a slot once per loop item, and the caller decides how each item looks:
+
+```latte
+{* partials/table.latte *}
+<table>
+    {foreach $rows as $row}
+        <tr>{slot row}<td>{$row}</td>{/slot}</tr>
+    {/foreach}
+</table>
+
+{* caller *}
+{var $class = 'highlight'}
+{embed file 'partials.table', rows: $rows}
+    {slot row}<td class={$class}>{$row}</td>{/slot}
+{/embed}
+```
+
+Partial values win on name clashes. Without a fill, the default renders for every row. For an explicit interface, the partial declares `{define row, $cell}…{/define}` and renders `{include #row, cell: $row}`; the caller's `{slot row}` then reads `$cell`.
 
 ## {iftext} / n:iftext
 

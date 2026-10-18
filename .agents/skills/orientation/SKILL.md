@@ -47,7 +47,7 @@ Five pieces, all wired from one class (`src/ServiceProvider.php`):
 | `src/Latte/Extensions/ModifierExtension.php` | Exposes all Statamic modifiers as Latte filters (context arg is deliberately `[]`) |
 | `src/Latte/Extensions/ResolverExtension.php` | `resolve()` / `r()` template functions + filters |
 | `src/Latte/Extensions/SectionExtension.php` | `{section}` / `{yield}` cross-engine content bus |
-| `src/Latte/Extensions/SlotExtension.php` | `{slot}` as an exact alias of `{block}` |
+| `src/Latte/Extensions/SlotExtension.php` | `{slot}` as an alias of `{block}` (via `Nodes/SlotNode.php`, which keeps caller scope in embeds) |
 | `src/Latte/Extensions/TagExtension.php` | Registers the `s:` tag bridge + `statamic()`/`s()` functions |
 | `src/Latte/Extensions/Nodes/TagNode.php` | Compile-time node for `{s:*}` tags; holds the `$unsupportedTags` blocklist |
 | `src/Latte/Extensions/Nodes/AntlersNode.php` | Extracts `{antlers}` bodies to temp `.antlers.html` views |
