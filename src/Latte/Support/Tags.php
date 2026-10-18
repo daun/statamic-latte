@@ -8,8 +8,6 @@ use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Str;
 use Statamic\Facades\Blink;
 use Statamic\Facades\Cascade;
-use Statamic\Statamic;
-use Statamic\Tags\FluentTag;
 
 class Tags
 {
@@ -67,8 +65,9 @@ class Tags
             }
         }
 
-        $tag = Statamic::tag($name)
-            ->params($params)
+        // Hand tags raw Statamic data, like modifiers get, not template wrappers
+        $tag = FluentTag::make($name)
+            ->params(array_map([Content::class, 'unwrap'], $params))
             ->context(Cascade::instance()->toArray());
 
         if ($content !== null) {

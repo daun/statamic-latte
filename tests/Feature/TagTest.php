@@ -4,6 +4,7 @@ use Daun\StatamicLatte\Latte\Support\Tags as LatteTags;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Statamic\Facades\Blink;
 use Statamic\Facades\Cascade;
+use Statamic\Facades\Entry;
 use Statamic\Tags\Tags as StatamicTag;
 
 describe('scalar tags', function () {
@@ -144,6 +145,49 @@ describe('content param', function () {
 });
 
 describe('params', function () {
+    beforeEach(function () {
+        // Reports the type each param arrives with at the tag
+        app('statamic.tags')->put('param_types', new class extends StatamicTag
+        {
+            public function index()
+            {
+                return $this->params
+                    ->map(fn ($value, $key) => $key.'='.(is_array($value)
+                        ? 'array['.implode('|', array_unique(array_map('get_debug_type', $value))).']'
+                        : get_debug_type($value)))
+                    ->implode(' ') ?: 'none';
+            }
+        });
+    });
+
+    test('hands a wrapped entry to tags as the raw entry', function () {
+        $this->latte('{s:param_types entry: $page /}', ['page' => Entry::query()->where('collection', 'pages')->where('slug', 'testable')->first()])
+            ->assertSee('entry='.get_class(Entry::query()->where('collection', 'pages')->where('slug', 'testable')->first()))
+            ->assertDontSee('Content');
+    });
+
+    test('hands a list of wrapped entries to tags as raw entries', function () {
+        $this->latte('{s:param_types entries: $pages /}', [
+            'pages' => Entry::query()->where('collection', 'pages')->get(),
+        ])
+            ->assertSee('entries=array['.get_class(Entry::query()->where('collection', 'pages')->where('slug', 'testable')->first()).']');
+    });
+
+    test('hands a deferred relationship to tags as the resolved entry', function () {
+        $child = Entry::query()->where('collection', 'pages')->where('slug', 'testable-child')->first();
+
+        $this->latte('{s:param_types related: $related /}', ['related' => $child->augmentedValue('related_page')])
+            ->assertSee('related='.get_class(Entry::query()->where('collection', 'pages')->where('slug', 'testable')->first()));
+    });
+
+    test('passes null params as null instead of true', function () {
+        $this->latte('{s:param_types missing: $missing /}', ['missing' => null])
+            ->assertSee('missing=null');
+
+        $this->latte('{var $missing = null}{s:param_types src: $missing, keep: 0 /}')
+            ->assertSee('src=null keep=int');
+    });
+
     test('accepts nested params', function () {
         $this->latte(<<<'LATTE'
             {s:collection from: pages, status:is => draft}
