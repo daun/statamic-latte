@@ -8,8 +8,6 @@ use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Str;
 use Statamic\Facades\Blink;
 use Statamic\Facades\Cascade;
-use Statamic\Statamic;
-use Statamic\Tags\FluentTag;
 
 class Tags
 {
@@ -67,8 +65,9 @@ class Tags
             }
         }
 
-        $tag = Statamic::tag($name)
-            ->params(static::normalizeParams($params))
+        // Hand tags raw Statamic data, like modifiers get, not template wrappers
+        $tag = FluentTag::make($name)
+            ->params(array_map([Content::class, 'unwrap'], $params))
             ->context(Cascade::instance()->toArray());
 
         if ($content !== null) {
@@ -76,21 +75,6 @@ class Tags
         }
 
         return static::fetchTag($name, $tag);
-    }
-
-    /**
-     * Hand tags raw Statamic data, like modifiers get: peel the template wrappers
-     * and leave out nulls, which fluent tags would otherwise turn into `true` flags.
-     *
-     * @param  array<mixed>  $params
-     * @return array<mixed>
-     */
-    protected static function normalizeParams(array $params): array
-    {
-        return array_filter(
-            array_map([Content::class, 'unwrap'], $params),
-            fn (mixed $value) => $value !== null,
-        );
     }
 
     /**
