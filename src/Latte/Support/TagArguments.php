@@ -2,7 +2,6 @@
 
 namespace Daun\StatamicLatte\Latte\Support;
 
-use Daun\StatamicLatte\Latte\Extensions\Nodes\TagNode;
 use Latte\CompileException;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\IdentifierNode;
@@ -38,11 +37,16 @@ class TagArguments
 
     public static function parseParams(string $text): ArrayNode
     {
+        $text = preg_replace('/^\s*,/', '', $text) ?? $text;
         if (trim($text) === '') {
             return new ArrayNode([]);
         }
 
-        $args = (new TagParser((new TagLexer)->tokenize(self::escapeNestedKeys($text))))->parseArguments();
+        $parser = new TagParser((new TagLexer)->tokenize(self::escapeNestedKeys($text)));
+        $args = $parser->parseArguments();
+        if (! $parser->isEnd()) {
+            $parser->stream->throwUnexpectedException();
+        }
 
         // `key: value` parses to an IdentifierNode, `key => value` to a StringNode.
         foreach ($args->items as $item) {

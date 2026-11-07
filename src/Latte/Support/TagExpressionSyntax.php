@@ -80,12 +80,6 @@ class TagExpressionSyntax
 
         $call = substr($trimmed, 2);
 
-        try {
-            [$name, $args] = TagArguments::parse($call);
-        } catch (\Throwable) {
-            return null;
-        }
-
         // A bare pipe (`in: $x|lower`) is silently swallowed by Latte's argument
         // grammar, so reject it loudly rather than dropping the filter.
         if (self::hasTopLevelPipe($call)) {
@@ -96,6 +90,7 @@ class TagExpressionSyntax
             );
         }
 
+        [$name, $args] = TagArguments::parse($call);
         $params = $args->print(new PrintContext);
 
         return $params === '[]'

@@ -30,6 +30,7 @@ class TagMethodSyntax
 
                 $name = "{$tag}:{$method}";
                 $argument = self::TAG_ARGUMENT.': "'.$name.'"';
+                $tail = preg_replace('/^\s*,/', '', $tail) ?? $tail;
 
                 return match (trim($tail)) {
                     '' => "{s:{$tag} {$argument}}",

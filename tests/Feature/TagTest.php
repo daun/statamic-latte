@@ -2,6 +2,7 @@
 
 use Daun\StatamicLatte\Latte\Support\Tags as LatteTags;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Latte\CompileException;
 use Statamic\Facades\Blink;
 use Statamic\Facades\Cascade;
 use Statamic\Facades\Entry;
@@ -187,6 +188,22 @@ describe('params', function () {
         $this->latte('{var $missing = null}{s:param_types src: $missing, keep: 0 /}')
             ->assertSee('src=null keep=int');
     });
+
+    test('accepts a comma after the block tag name', function () {
+        $this->latte('{s:collection, from: pages, sort: title}{$value->title}{sep}, {/sep}{/s:collection}')
+            ->assertSee('Testable, Testable With Layout');
+
+        $this->latte('{s:collection:count, in: pages /} pages')->assertSee('2 pages');
+    });
+
+    test('rejects unexpected tokens in block tag params', function (string $params, string $token) {
+        expect(fn () => $this->latte("{s:collection {$params}}{/s:collection}"))
+            ->toThrow(CompileException::class, "Unexpected '{$token}'");
+    })->with([
+        'missing comma between args' => ['from: pages sort: title', 'sort'],
+        'trailing bareword' => ['from: pages, sort: title junk', 'junk'],
+        'trailing punctuation' => ['from: pages; junk', ';'],
+    ]);
 
     test('accepts nested params', function () {
         $this->latte(<<<'LATTE'

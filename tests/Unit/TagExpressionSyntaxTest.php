@@ -68,6 +68,20 @@ describe('rewrite', function () {
         rewriteExpr('{(s:collection:count in: $c|lower)}');
     })->throws(CompileException::class, 'Bare filters are not supported');
 
+    test('accepts a comma after the tag name', function () {
+        expect(rewriteExpr('(s:opening_hours:for_week, hours: $hours, group: ($g ? "c" : false))'))
+            ->toBe("(s('opening_hours:for_week', ['hours' => \$hours, 'group' => \$g ? 'c' : false]))");
+    });
+
+    test('rejects unexpected tokens after params', function (string $params, string $token) {
+        expect(fn () => rewriteExpr("(s:collection {$params})"))
+            ->toThrow(CompileException::class, "Unexpected '{$token}'");
+    })->with([
+        'missing comma between args' => ['from: pages sort: title', 'sort'],
+        'trailing bareword' => ['from: pages, sort: title junk', 'junk'],
+        'trailing punctuation' => ['from: pages; junk', ';'],
+    ]);
+
     test('ignores a logical or (not a filter)', function () {
         expect(rewriteExpr('{(s:collection from: ($a || $b))}'))
             ->toBe("{(s('collection', ['from' => \$a || \$b]))}");
